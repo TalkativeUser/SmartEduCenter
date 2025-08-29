@@ -8,15 +8,19 @@ import ModalManager from "./ModalManager";
 const translations = {
   en: {
     name: "Name",
-    position: "Position",
-    status: "Status",
+    studentCode: "Student Code",
+    parentPhone: "Parent Phone",
+    groupsname: "Groups",
+    classRoomName: "Classroom",
     actions: "Actions",
     noStudents: "No students available.",
   },
   ar: {
     name: "الاسم",
-    position: "المنصب",
-    status: "الحالة",
+    studentCode: "كود الطالب",
+    parentPhone: "هاتف ولي الأمر",
+    groupsname: "المجموعات",
+    classRoomName: "الفصل الدراسي",
     actions: "الإجراءات",
     noStudents: "لا يوجد طلاب متاحين.",
   },
@@ -37,10 +41,16 @@ export default function TableStudents() {
               {currentLanguage.name}
             </th>
             <th scope="col" className="px-6 py-3 text-start">
-              {currentLanguage.position}
+              {currentLanguage.studentCode}
             </th>
             <th scope="col" className="px-6 py-3 text-start">
-              {currentLanguage.status}
+              {currentLanguage.parentPhone}
+            </th>
+            <th scope="col" className="px-6 py-3 text-start">
+              {currentLanguage.groupsname}
+            </th>
+            <th scope="col" className="px-6 py-3 text-start">
+              {currentLanguage.classRoomName}
             </th>
             <th scope="col" className="px-6 py-3 text-start">
               {currentLanguage.actions}

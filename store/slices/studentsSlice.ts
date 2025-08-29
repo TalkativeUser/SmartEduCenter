@@ -3,57 +3,52 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 export interface Student {
   id: number;
   name: string;
-  email: string;
-  position: string;
-  status: string;
-  avatar: string;
+  parentPhone: string;
+  groupsname: string[];
+  classRoomName: string;
+  studentCode: string;
 }
 
 const initialStudents: Student[] = [
   {
     id: 1,
     name: "Neil Sims",
-    email: "neil.sims@flowbite.com",
-    position: "React Developer",
-    status: "online",
-    avatar:
-      "https://cdn0.iconfinder.com/data/icons/kameleon-free-pack-rounded/110/Student-3-512.png",
+    parentPhone: "1234567890",
+    groupsname: ["الاحد علوم 6 م ","اللغة العربيه الاثنين 5 م","اللغة الانجليزيه الاثنين 2 م"],
+    classRoomName: "الصف الاول الاعدادى",
+    studentCode: "123456",
   },
   {
     id: 2,
     name: "Bonnie Green",
-    email: "bonnie@flowbite.com",
-    position: "Designer",
-    status: "online",
-    avatar:
-      "https://cdn0.iconfinder.com/data/icons/kameleon-free-pack-rounded/110/Student-3-512.png",
+    parentPhone: "1234567890",
+    groupsname: ["علوم الحاسوب","اللغة العربيه الاثنين 5 م","اللغة الانجليزيه الاثنين 2 م"],
+    classRoomName: "الصف الاول الاعدادى",
+    studentCode: "123456",
   },
   {
     id: 3,
     name: "Jese Leos",
-    email: "jese@flowbite.com",
-    position: "Vue JS Developer",
-    status: "online",
-    avatar:
-      "https://cdn0.iconfinder.com/data/icons/kameleon-free-pack-rounded/110/Student-3-512.png",
-  },
+    parentPhone: "1234567890",
+    groupsname: ["علوم الحاسوب","اللغة العربيه الاثنين 5 م","اللغة الانجليزيه الاثنين 2 م"],
+    classRoomName: "الصف الاول الاعدادى",
+    studentCode: "123456",
+      },
   {
     id: 4,
     name: "Thomas Lean",
-    email: "thomas@flowbite.com",
-    position: "UI/UX Engineer",
-    status: "online",
-    avatar:
-      "https://cdn0.iconfinder.com/data/icons/kameleon-free-pack-rounded/110/Student-3-512.png",
-  },
+    parentPhone: "1234567890",
+    groupsname: ["علوم الحاسوب","اللغة العربيه الاثنين 5 م","اللغة الانجليزيه الاثنين 2 م"],
+    classRoomName: "الصف الاول الاعدادى",
+    studentCode: "123456",
+      },
   {
     id: 5,
     name: "Leslie Livingston",
-    email: "leslie@flowbite.com",
-    position: "SEO Specialist",
-    status: "offline",
-    avatar:
-      "https://cdn0.iconfinder.com/data/icons/kameleon-free-pack-rounded/110/Student-3-512.png",
+    parentPhone: "1234567890",
+    groupsname: ["علوم الحاسوب","اللغة العربيه الاثنين 5 م","اللغة الانجليزيه الاثنين 2 م"],
+    classRoomName: "الصف الاول الاعدادى",
+    studentCode: "123456",
   },
 ];
 

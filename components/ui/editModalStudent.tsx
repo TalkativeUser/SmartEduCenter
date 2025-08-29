@@ -28,20 +28,20 @@ export default function EditModalStudent({ studentSelected, setStudentSelected }
   const { language } = useAppSelector((state) => state.ui);
   const [formData, setFormData] = useState({
     name: "",
-    email: "",
-    position: "",
-    status: "online" as "online" | "offline",
-    avatar: "",
+    parentPhone: "",
+    groupsname: [] as string[],
+    classRoomName: "",
+    studentCode: "",
   });
 
   useEffect(() => {
     if (studentSelected) {
       setFormData({
         name: studentSelected.name,
-        email: studentSelected.email,
-        position: studentSelected.position,
-        status: studentSelected.status as "online" | "offline",
-        avatar: studentSelected.avatar,
+        parentPhone: studentSelected.parentPhone,
+        groupsname: studentSelected.groupsname,
+        classRoomName: studentSelected.classRoomName,
+        studentCode: studentSelected.studentCode,
       });
     }
   }, [studentSelected]);
@@ -69,11 +69,10 @@ export default function EditModalStudent({ studentSelected, setStudentSelected }
       title: "Edit Student",
       description: "Make changes to the student information below.",
       name: "Full Name",
-      email: "Email Address",
-      position: "Position/Role",
-      status: "Status",
-      online: "Online",
-      offline: "Offline",
+      parentPhone: "Parent Phone",
+      groupsname: "Groups",
+      classRoomName: "Classroom",
+      studentCode: "Student Code",
       save: "Save Changes",
       cancel: "Cancel",
     },
@@ -81,11 +80,10 @@ export default function EditModalStudent({ studentSelected, setStudentSelected }
       title: "تعديل الطالب",
       description: "قم بإجراء التغييرات على معلومات الطالب أدناه.",
       name: "الاسم الكامل",
-      email: "عنوان البريد الإلكتروني",
-      position: "المنصب/الدور",
-      status: "الحالة",
-      online: "متصل",
-      offline: "غير متصل",
+      parentPhone: "هاتف ولي الأمر",
+      groupsname: "المجموعات",
+      classRoomName: "الفصل الدراسي",
+      studentCode: "رمز الطالب",
       save: "حفظ التغييرات",
       cancel: "إلغاء",
     },
@@ -111,35 +109,42 @@ export default function EditModalStudent({ studentSelected, setStudentSelected }
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="email">{currentLanguage.email}</Label>
+            <Label htmlFor="parentPhone">{currentLanguage.parentPhone}</Label>
             <Input
-              id="email"
-              type="email"
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              id="parentPhone"
+              type="tel"
+              value={formData.parentPhone}
+              onChange={(e) => setFormData({ ...formData, parentPhone: e.target.value })}
               required
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="position">{currentLanguage.position}</Label>
+            <Label htmlFor="groupsname">{currentLanguage.groupsname}</Label>
             <Input
-              id="position"
-              value={formData.position}
-              onChange={(e) => setFormData({ ...formData, position: e.target.value })}
+              id="groupsname"
+              value={formData.groupsname.join(", ")}
+              onChange={(e) => setFormData({ ...formData, groupsname: e.target.value.split(", ").filter(g => g.trim() !== "") })}
+              placeholder="Enter groups separated by commas"
               required
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="status">{currentLanguage.status}</Label>
-            <Select value={formData.status} onValueChange={(value: "online" | "offline") => setFormData({ ...formData, status: value })}>
-              <SelectTrigger className="cursor-pointer">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="online" className="cursor-pointer">{currentLanguage.online}</SelectItem>
-                <SelectItem value="offline" className="cursor-pointer">{currentLanguage.offline}</SelectItem>
-              </SelectContent>
-            </Select>
+            <Label htmlFor="classRoomName">{currentLanguage.classRoomName}</Label>
+            <Input
+              id="classRoomName"
+              value={formData.classRoomName}
+              onChange={(e) => setFormData({ ...formData, classRoomName: e.target.value })}
+              required
+            />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="studentCode">{currentLanguage.studentCode}</Label>
+            <Input
+              id="studentCode"
+              value={formData.studentCode}
+              onChange={(e) => setFormData({ ...formData, studentCode: e.target.value })}
+              required
+            />
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={handleCancel} className="cursor-pointer">
