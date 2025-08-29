@@ -4,7 +4,7 @@ interface UiState {
   language: "en" | "ar"
   drawerOpen: boolean,
   modalIsOpen:boolean ,
-  modalType: "addStudent" | 'editStudent'|'deleteStudent' | 'addClass' | 'editClass' | 'deleteClass' | null
+  modalType: "addStudent" | 'editStudent'|'deleteStudent' | 'addClass' | 'editClass' | 'deleteClass' | 'addGroup' | 'editGroup' | 'deleteGroup' | null
 }
 
 const initialState: UiState = {
@@ -27,7 +27,7 @@ const uiSlice = createSlice({
     toggleDrawer: (state) => {
       state.drawerOpen = !state.drawerOpen
     },
-       toggleModal: (state, action: PayloadAction< "addStudent" | "editStudent" | "deleteStudent" | "addClass" | "editClass" | "deleteClass" | null>) => {
+       toggleModal: (state, action: PayloadAction< "addStudent" | "editStudent" | "deleteStudent" | "addClass" | "editClass" | "deleteClass" | "addGroup" | "editGroup" | "deleteGroup" | null>) => {
       state.modalIsOpen =!state.modalIsOpen
       state.modalType=action.payload
     },

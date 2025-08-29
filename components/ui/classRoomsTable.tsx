@@ -3,6 +3,8 @@ import React, { useState } from "react";
 import { useAppSelector } from "@/hooks/redux";
 import ClassRoomRow, { ClassItemRow } from "./classRow";
 import ModalManager from "./ModalManager";
+import GroupModalsManager from "./groupModalsManager";
+import type { Group } from "@/store/slices/classesSlice";
 
 // Translation dictionary
 const translations = {
@@ -28,6 +30,8 @@ export default function ClassRoomsTable() {
   const classesState = useAppSelector((state) => state.classes);
   const { language } = useAppSelector((state) => state.ui);
   const [classSelected, setClassSelected] = useState<ClassItemRow | null>(null);
+  const [groupSelected, setGroupSelected] = useState<Group | null>(null);
+  const [classSelectedForGroup, setClassSelectedForGroup] = useState<number | null>(null);
 
   const currentLanguage = translations[language as "en" | "ar"] || translations.en;
 
@@ -45,7 +49,13 @@ export default function ClassRoomsTable() {
         </thead>
         <tbody>
           {classesState.map((classItem) => (
-            <ClassRoomRow key={classItem.id} classItem={classItem} setClassSelected={setClassSelected} />
+            <ClassRoomRow 
+              key={classItem.id} 
+              classItem={classItem} 
+              setClassSelected={setClassSelected}
+              setGroupSelected={setGroupSelected}
+              setClassSelectedForGroup={setClassSelectedForGroup}
+            />
           ))}
         </tbody>
       </table>
@@ -56,11 +66,15 @@ export default function ClassRoomsTable() {
         </div>
       )}
 
-  
-        <ModalManager
-          classSelected={classSelected}
-          setClassSelected={setClassSelected}
-        />
+      <ModalManager
+        classSelected={classSelected}
+        setClassSelected={setClassSelected}
+      />
+      
+      <GroupModalsManager 
+        groupSelected={groupSelected}
+        classSelected={classSelectedForGroup}
+      />
    
     </div>
   );

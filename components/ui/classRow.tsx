@@ -1,17 +1,20 @@
 "use client";
 import React, { useState } from "react";
-import { Pencil, Trash2, PlusCircle, MinusCircle } from "lucide-react";
+import { Pencil, Trash2, PlusCircle, MinusCircle, Plus } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAppDispatch, useAppSelector } from "@/hooks/redux";
 import { toggleModal } from "../../store/slices/uiSlice";
-import type { ClassItem } from "@/store/slices/classesSlice";
+import type { ClassItem, Group } from "@/store/slices/classesSlice";
 import { cn } from "@/lib/utils";
+import GroupRow from "./groupRow";
 
 export interface ClassItemRow extends ClassItem {}
 
 interface ClassRowProps {
   classItem: ClassItemRow;
   setClassSelected: React.Dispatch<React.SetStateAction<ClassItemRow | null>>;
+  setGroupSelected: React.Dispatch<React.SetStateAction<Group | null>>;
+  setClassSelectedForGroup: React.Dispatch<React.SetStateAction<number | null>>;
 }
 
 const groupTranslations = {
@@ -24,6 +27,7 @@ const groupTranslations = {
     price: "Price",
     payment: "Payment",
     actions: "Actions",
+    addGroup: "Add Group",
   },
   ar: {
     groupsFor: "المجموعات الخاصة بـ",
@@ -34,12 +38,13 @@ const groupTranslations = {
     price: "السعر",
     payment: "الدفع",
     actions: "الإجراءات",
+    addGroup: "إضافة مجموعة",
   },
 };
 
 
 
-export default function ClassRoomRow({ classItem, setClassSelected }: ClassRowProps) {
+export default function ClassRoomRow({ classItem, setClassSelected, setGroupSelected, setClassSelectedForGroup }: ClassRowProps) {
   const dispatch = useAppDispatch();
   const [expanded, setExpanded] = useState(false);
   const { language } = useAppSelector((state) => state.ui);
@@ -53,6 +58,11 @@ export default function ClassRoomRow({ classItem, setClassSelected }: ClassRowPr
     dispatch(toggleModal("deleteClass"));
     setClassSelected(item);
     console.log("classItem => ", item);
+  };
+
+  const handleAddGroup = () => {
+    setClassSelectedForGroup(classItem.id);
+    dispatch(toggleModal("addGroup"));
   };
 
   return (
@@ -106,9 +116,18 @@ export default function ClassRoomRow({ classItem, setClassSelected }: ClassRowPr
               className="overflow-hidden"
             >
               <div className="m-4 p-4 bg-gray-100 dark:bg-gray-700 rounded-xl shadow-inner border">
-                <h4 className="font-semibold text-gray-700 dark:text-gray-200 mb-2">
-                  {t.groupsFor} {classItem.name}
-                </h4>
+                <div className="flex justify-between items-center mb-4">
+                  <h4 className="font-semibold text-gray-700 dark:text-gray-200">
+                    {t.groupsFor} {classItem.name}
+                  </h4>
+                  <button
+                    onClick={handleAddGroup}
+                    className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-200 hover:scale-105 transform"
+                  >
+                    <Plus size={16} />
+                    {t.addGroup}
+                  </button>
+                </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm text-left border-collapse">
                     <thead className="bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200">
@@ -124,29 +143,13 @@ export default function ClassRoomRow({ classItem, setClassSelected }: ClassRowPr
                     </thead>
                     <tbody>
                       {classItem.groups.map((group) => (
-                        <tr
+                        <GroupRow
                           key={group.id}
-                          className="border-t hover:bg-gray-300 dark:hover:bg-gray-500 transition-colors duration-200"
-                        >
-                          <td className="px-4 py-2 font-medium">{group.name}</td>
-                          <td className="px-4 py-2">{group.day.join(", ")}</td>
-                          <td className="px-4 py-2">{group.time.join(", ")}</td>
-                          <td className="px-4 py-2">{group.maximumStudents}</td>
-                          <td className="px-4 py-2">{group.groupPrice}</td>
-                          <td className="px-4 py-2">{group.paymentPeriod}</td>
-                          <td className="px-4 py-2 flex gap-3">
-                            <button
-                              className="text-blue-600 dark:text-blue-500 hover:underline cursor-pointer hover:-translate-y-1 hover:scale-[1.2] transition-transform duration-300 "
-                            >
-                              <Pencil />
-                            </button>
-                            <button
-                              className="text-red-600 dark:text-red-500 hover:underline cursor-pointer hover:-translate-y-1 hover:scale-[1.2] transition-transform duration-300"
-                            >
-                              <Trash2 />
-                            </button>
-                          </td>
-                        </tr>
+                          group={group}
+                          classId={classItem.id}
+                          setGroupSelected={setGroupSelected}
+                          setClassSelected={setClassSelectedForGroup}
+                        />
                       ))}
                     </tbody>
                   </table>
