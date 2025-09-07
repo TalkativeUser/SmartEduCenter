@@ -3,6 +3,7 @@ import authReducer from "./slices/authSlice"
 import uiReducer from "./slices/uiSlice"
 import studentsReducer from "./slices/studentsSlice"
 import classesReducer from "./slices/classesSlice"
+import sessionReducer from "./slices/sessionSlice"
 
 export const store = configureStore({
   reducer: {
@@ -10,6 +11,7 @@ export const store = configureStore({
     ui: uiReducer,
     students: studentsReducer,
     classes: classesReducer,
+    session: sessionReducer,
   },
 })
 

@@ -1,6 +1,6 @@
 "use client"
 
-import React from "react"
+import React, { useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Button } from "./ui/button"
@@ -29,6 +29,8 @@ import {
   User,
 } from "lucide-react"
 import { cn } from "../lib/utils"
+import LogoutTimer from "./ui/LogoutTimer"
+import { clearSession, loadSessionFromStorage } from "@/store/slices/sessionSlice"
 
 interface DashboardLayoutProps {
   children: React.ReactNode
@@ -37,8 +39,13 @@ interface DashboardLayoutProps {
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const dispatch = useAppDispatch()
   const { drawerOpen, language } = useAppSelector((state) => state.ui)
-
   const isRTL = language === "ar"
+
+  useEffect(() => {
+    dispatch(loadSessionFromStorage())
+  }, [dispatch])
+
+
 
   return (
     <div
@@ -165,8 +172,8 @@ const TopBar=()=>{
             <div className="flex items-center gap-x-4 lg:gap-x-6">
               <ThemeToggle />
 
-              {/* Logout Timer */}
-              {/* <LogoutTimer remainingTime={remainingTime} /> */}
+              <LogoutTimer />
+
 
               {/* Notifications */}
               <Button variant="ghost" size="sm" className="relative hover-lift cursor-pointer">
@@ -207,6 +214,11 @@ const NavigationDrawer=()=>{
   }
 
   const handleLogout = () => {
+
+  // clear session expiry
+  dispatch(clearSession()) // يمسح expiryTime و localStorage
+
+
     dispatch(logout())
   }
 

@@ -51,6 +51,7 @@ const authSlice = createSlice({
       // Clear cookies on logout
       removeCookie("teacherToken")
       removeCookie("teacherData")
+      
     },
     clearError: (state) => {
       state.error = null

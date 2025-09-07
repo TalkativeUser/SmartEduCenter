@@ -13,6 +13,7 @@ import { useAppDispatch, useAppSelector } from "../../hooks/redux"
 import { clearError } from "../../store/slices/authSlice"
 import { loginTeacher } from "../../lib/api/auth"
 import { Eye, EyeOff, AlertCircle } from "lucide-react"
+import { startSession } from "@/store/slices/sessionSlice"
 
 export default function LoginPage() {
   const router = useRouter()
@@ -53,6 +54,7 @@ export default function LoginPage() {
 
       setTimeout(() => {
         router.push("/dashboard")
+        dispatch(startSession(Date.now() + 30 * 60 * 1000))
       }, 1200)    } catch (err) {
       console.error("Login error:", err)
     }
