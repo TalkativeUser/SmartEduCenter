@@ -1,4 +1,5 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit"
+import { getCookie, removeCookie } from "../../lib/cookiesMethods"
 
 export interface User {
   id: string
@@ -47,9 +48,44 @@ const authSlice = createSlice({
       state.isAuthenticated = false
       state.loading = false
       state.error = null
+      // Clear cookies on logout
+      removeCookie("teacherToken")
+      removeCookie("teacherData")
     },
     clearError: (state) => {
       state.error = null
+    },
+    registerStart: (state) => {
+      state.loading = true
+      state.error = null
+    },
+    registerSuccess: (state) => {
+      state.loading = false
+      state.error = null
+    },
+    registerFailure: (state, action: PayloadAction<string>) => {
+      state.loading = false
+      state.error = action.payload
+    },
+    checkTeacherToken: (state) => {
+      const teacherToken = getCookie("teacherToken")
+      const teacherData = getCookie("teacherData")
+      if (teacherToken && teacherData) {
+        state.isAuthenticated = true
+        try {
+          state.user = JSON.parse(teacherData)
+        } catch (error) {
+          console.error("Error parsing teacher data from cookies:", error)
+          state.user = null
+        }
+      }
+    },
+
+    startLoading: (state) => {
+      state.loading = true
+    },
+    stopLoading: (state) => {
+      state.loading = false
     },
   },
 
@@ -66,5 +102,5 @@ const authSlice = createSlice({
 
 })
 
-export const { loginStart, loginSuccess, loginFailure, logout, clearError } = authSlice.actions
+export const { loginStart, loginSuccess, loginFailure, logout, clearError, registerStart, registerSuccess, registerFailure, checkTeacherToken , startLoading , stopLoading } = authSlice.actions
 export default authSlice.reducer

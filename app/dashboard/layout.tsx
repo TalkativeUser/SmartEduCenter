@@ -10,7 +10,7 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   return (
-    <AuthGuard requireAuth={false}>
+    <AuthGuard requireAuth={true} redirectTo="/login" >
       {children}
     </AuthGuard>
   )

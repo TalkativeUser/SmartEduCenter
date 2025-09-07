@@ -4,11 +4,11 @@ import { useAppSelector } from "@/hooks/redux";
 import AddGroupModal from "./addModalGroup";
 import EditGroupModal from "./editModalGroup";
 import DeleteGroupModal from "./deleteModalGroup";
-import type { Group } from "@/store/slices/classesSlice";
+import type { Group } from "@/types";
 
 interface GroupModalsManagerProps {
-  groupSelected: Group | null;
-  classSelected: number | null;
+  groupSelected: Group | undefined;
+  classSelected: number | undefined;
 }
 
 export default function GroupModalsManager({ groupSelected, classSelected }: GroupModalsManagerProps) {

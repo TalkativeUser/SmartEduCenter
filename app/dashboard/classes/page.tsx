@@ -5,16 +5,21 @@ import { Input } from "../../../components/ui/input"
 import { DashboardLayout } from "../../../components/dashboard-layout"
 import { useAppDispatch, useAppSelector } from "../../../hooks/redux"
 import { Plus, Filter, Search } from "lucide-react"
-import { type ClassItem } from "../../../store/slices/classesSlice"
 import ClassRoomsTable from "@/components/ui/classRoomsTable"
 import { toggleModal } from "@/store/slices/uiSlice"
-import React from "react"
+import React, { useEffect, useCallback } from "react"
+import { getClassMetadata } from "@/lib/api/classRooms"
+import Loading from "@/components/ui/Loading"
+import { startLoading, stopLoading } from "@/store/slices/authSlice"
 
 // Simple, inline UI to add/edit/delete classes using prompts to keep scope small
 export default function ClassesPage() {
-  const { language } = useAppSelector((state) => state.ui)
+  const { language  } = useAppSelector((state) => state.ui)
+  const { loading  } = useAppSelector((state) => state.auth)
   const dispatch = useAppDispatch()
   const [search, setSearch] = React.useState("")
+  const [allSubjects, setAllSubjects ] = React.useState([])
+  const [selectedSubject, setSelectedSubject ] = React.useState<any>(null)
 
   const t = {
     en: {
@@ -55,7 +60,32 @@ export default function ClassesPage() {
     dispatch(toggleModal("addClass"))
   }
 
-  // Filtering is preserved for a future client-side search implementation
+
+  const fetchData = useCallback(async () => {
+    try {
+      
+      const subjectsArray = await getClassMetadata()
+      console.log("subjectsArray => ", subjectsArray)
+      setAllSubjects(subjectsArray)
+    } catch (error: any) {
+      console.log("Get class metadata error => ", error)
+    } finally {
+    
+    }
+  }, [])
+
+
+
+
+  useEffect(() => {
+    fetchData()
+  }, [fetchData])
+
+
+  
+  if(loading){
+    return <Loading/>
+  }
 
   return (
     <DashboardLayout>
@@ -98,7 +128,7 @@ export default function ClassesPage() {
           <CardHeader>
             <CardTitle>{tr.all}</CardTitle>
           </CardHeader>
-          <ClassRoomsTable />
+          <ClassRoomsTable allSubjects={allSubjects} selectedSubject={selectedSubject} setSelectedSubject={setSelectedSubject} />
         </Card>
       </div>
     </DashboardLayout>

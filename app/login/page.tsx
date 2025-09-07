@@ -10,9 +10,9 @@ import { Label } from "../../components/ui/label"
 import { Alert, AlertDescription } from "../../components/ui/alert"
 import { PublicLayout } from "../../components/public-layout"
 import { useAppDispatch, useAppSelector } from "../../hooks/redux"
-import { loginStart, loginSuccess, loginFailure, clearError } from "../../store/slices/authSlice"
-import { mockLogin } from "../../utils/auth"
-import { Eye, EyeOff, AlertCircle, Loader2 } from "lucide-react"
+import { clearError } from "../../store/slices/authSlice"
+import { loginTeacher } from "../../lib/api/auth"
+import { Eye, EyeOff, AlertCircle } from "lucide-react"
 
 export default function LoginPage() {
   const router = useRouter()
@@ -47,14 +47,14 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    dispatch(loginStart())
-
+    
     try {
-      const user = await mockLogin(formData.email, formData.password)
-      dispatch(loginSuccess(user))
-      router.push("/dashboard")
-    } catch (err) {
-      dispatch(loginFailure(err instanceof Error ? err.message : "Login failed"))
+      await dispatch(loginTeacher({ email: formData.email, password: formData.password }))
+
+      setTimeout(() => {
+        router.push("/dashboard")
+      }, 1200)    } catch (err) {
+      console.error("Login error:", err)
     }
   }
 
@@ -64,6 +64,9 @@ export default function LoginPage() {
       [e.target.name]: e.target.value,
     })
   }
+
+
+  
 
   return (
     <PublicLayout>
@@ -140,10 +143,9 @@ export default function LoginPage() {
                   </div>
                 </div>
 
-                <Button type="submit" className="w-full" size="lg" disabled={loading}>
+                <Button type="submit" className="w-full" size="lg">
                   {loading ? (
                     <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                       {language === "en" ? "Signing in..." : "جاري تسجيل الدخول..."}
                     </>
                   ) : (

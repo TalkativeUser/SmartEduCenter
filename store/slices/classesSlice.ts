@@ -1,203 +1,170 @@
-import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk, type PayloadAction } from "@reduxjs/toolkit";
+import { Group, ClassItem } from "../../types";
+import { getAllClasses, deleteClass as deleteClassAPI, updateClass as updateClassAPI } from "../../lib/api/classRooms";
 
-export interface ClassItem {
-  id: number;
-  name: string;
-  teacher: string;
-  status: "active" | "inactive";
-  students: number;
-  groups: Group[];
+// Static group for display
+const staticGroup: Group = {
+  id: 1,
+  name: "المجموعة الأساسية",
+  day: ["Sunday", "Tuesday", "Thursday"],
+  time: ["17:00", "17:00", "17:00"],
+  maximumStudents: 25,
+  groupPrice: 150,
+  paymentPeriod: "Monthly",
+  startDate: "2025-09-01",
+  groupDescription: "المجموعة الأساسية للفصل",
+  numberOfSessions: 10,
+  students: [],
+};
+
+// Async thunk for fetching classes
+export const fetchClasses = createAsyncThunk(
+  'classes/fetchClasses',
+  async () => {
+    const response = await getAllClasses();
+    return response;
+  }
+);
+
+// Async thunk for deleting classes
+export const deleteClassThunk = createAsyncThunk(
+  'classes/deleteClass',
+  async (classId: number) => {
+    await deleteClassAPI(classId);
+    return classId;
+  }
+);
+
+// Async thunk for updating classes
+export const updateClassThunk = createAsyncThunk(
+  'classes/updateClass',
+  async ({ classId, updateData }: { 
+    classId: number; 
+    updateData: {
+      start_year: number;
+      end_year: number;
+      name: string;
+      status: boolean;
+      subject_id: number;
+      year: number;
+    }
+  }) => {
+    const response = await updateClassAPI(classId, updateData);
+    return response;
+  }
+);
+
+interface ClassesState {
+  classes: ClassItem[];
+  loading: boolean;
+  error: string | null;
 }
 
-export interface Group {
-  id: number;
-  name: string;
-  day: string[];
-  time: string[];
-  maximumStudents: number;
-  groupPrice: number;
-  paymentPeriod: "Daily" | "Monthly";
-  startDate: string;
-  explanatoryText: string;
-  groupDescription: string;
-  students: {
-    id: number;
-    name: string;
-    status: "active" | "inactive";
-    grade: number;
-    parentName: string;
-  }[];
-}
-
-const groups: Group[] = [
-  {
-    id: 1,
-    name: "اللغة العربيه",
-    day: ["Sunday", "Tuesday", "Thursday"],
-    time: ["17:00", "17:00", "17:00"],
-    maximumStudents: 25,
-    groupPrice: 150,
-    paymentPeriod: "Monthly",
-    startDate: "2025-09-01",
-    explanatoryText: "Evening group focusing on advanced JavaScript.",
-    groupDescription: "Meets Sun/Tue/Thu at 5 PM.",
-    students: Array.from({ length: 8 }, (_, i) => ({
-      id: i + 1,
-      name: `Student ${i + 1}`,
-      groupname: "اللغة العربيه",
-      status: "active",
-      grade: 10,
-      parentName: `Parent ${i + 1}`,
-    })),
-  },
-  {
-    id: 2,
-    name: "اللغة الانجليزيه",
-    day: ["Monday", "Wednesday"],
-    time: ["10:00", "10:00"],
-    maximumStudents: 12,
-    groupPrice: 80,
-    paymentPeriod: "Daily",
-    startDate: "2025-09-10",
-    explanatoryText: "Morning reading club for kids.",
-    groupDescription: "Meets Mon & Wed at 10 AM.",
-    students: Array.from({ length: 8 }, (_, i) => ({
-      id: i + 1,
-      name: `Student ${i + 1}`,
-      groupname: "اللغة الانجليزيه",
-      status: "active",
-      grade: 9,
-      parentName: `Parent ${i + 1}`,
-    })),
-  },
-  {
-    id: 3,
-    name: "الرياضيات",
-    day: ["Saturday", "Monday"],
-    time: ["14:00", "14:00"],
-    maximumStudents: 20,
-    groupPrice: 120,
-    paymentPeriod: "Monthly",
-    startDate: "2025-09-15",
-    explanatoryText: "Math problem-solving sessions.",
-    groupDescription: "Meets Sat & Mon at 2 PM.",
-    students: Array.from({ length: 8 }, (_, i) => ({
-      id: i + 1,
-      name: `Student ${i + 1}`,
-      groupname: "الرياضيات",
-      status: "active",
-      grade: 11,
-      parentName: `Parent ${i + 1}`,
-    })),
-  },
-  {
-    id: 4,
-    name: "الفيزياء",
-    day: ["Tuesday", "Thursday"],
-    time: ["12:00", "12:00"],
-    maximumStudents: 15,
-    groupPrice: 100,
-    paymentPeriod: "Monthly",
-    startDate: "2025-09-20",
-    explanatoryText: "Physics concepts explained simply.",
-    groupDescription: "Meets Tue & Thu at 12 PM.",
-    students: Array.from({ length: 8 }, (_, i) => ({
-      id: i + 1,
-      name: `Student ${i + 1}`,
-      groupname: "الفيزياء",
-      status: "active",
-      grade: 12,
-      parentName: `Parent ${i + 1}`,
-    })),
-  },
-  {
-    id: 5,
-    name: "الكيمياء",
-    day: ["Wednesday", "Friday"],
-    time: ["09:00", "09:00"],
-    maximumStudents: 18,
-    groupPrice: 110,
-    paymentPeriod: "Monthly",
-    startDate: "2025-09-25",
-    explanatoryText: "Chemistry lab simulations and theory.",
-    groupDescription: "Meets Wed & Fri at 9 AM.",
-    students: Array.from({ length: 8 }, (_, i) => ({
-      id: i + 1,
-      name: `Student ${i + 1}`,
-      groupname: "الكيمياء",
-      status: "active",
-      grade: 11,
-      parentName: `Parent ${i + 1}`,
-    })),
-  },
-  {
-    id: 6,
-    name: "علوم الحاسوب",
-    day: ["Sunday", "Wednesday"],
-    time: ["16:00", "16:00"],
-    maximumStudents: 22,
-    groupPrice: 200,
-    paymentPeriod: "Monthly",
-    startDate: "2025-10-01",
-    explanatoryText: "Programming and algorithms for beginners.",
-    groupDescription: "Meets Sun & Wed at 4 PM.",
-    students: Array.from({ length: 8 }, (_, i) => ({
-      id: i + 1,
-      name: `Student ${i + 1}`,
-      groupname: "علوم الحاسوب",
-      status: "active",
-      grade: 10,
-      parentName: `Parent ${i + 1}`,
-    })),
-  },
-];
+const initialState: ClassesState = {
+  classes: [],
+  loading: false,
+  error: null,
+};
 
 
-const initialClasses: ClassItem[] = [
-  { id: 1, name: "Algebra I", teacher: "Mr. Smith", status: "active", students: 28, groups: groups },
-  { id: 2, name: "World History", teacher: "Ms. Davis", status: "active", students: 25, groups: groups },
-  { id: 3, name: "Chemistry Basics", teacher: "Dr. Brown", status: "inactive", students: 0, groups: groups },
-];
+// all components realted to classRooms
+// 1- addModalClassRoom
+// 2- classRoomsTable ✅
+// 3- editModalClassRoom
+// 4- deleteModalClassRoom
+// 5- classRooms
+// 6- classRoomsRow ✅
+// 8- classRoomsTableRow ✅
+
 
 const classesSlice = createSlice({
   name: "classes",
-  initialState: initialClasses,
+  initialState,
   reducers: {
     addClass: (state, action: PayloadAction<ClassItem>) => {
-      state.push(action.payload);
+      const newClass = { ...action.payload, groups: [staticGroup] };
+      state.classes.push(newClass);
     },
     editClass: (state, action: PayloadAction<ClassItem>) => {
-      const index = state.findIndex((c) => c.id === action.payload.id);
+      const index = state.classes.findIndex((c) => c.id === action.payload.id);
       if (index !== -1) {
-        state[index] = action.payload;
+        state.classes[index] = { ...action.payload, groups: [staticGroup] };
       }
     },
     deleteClass: (state, action: PayloadAction<number>) => {
-      return state.filter((c) => c.id !== action.payload);
+      state.classes = state.classes.filter((c) => c.id !== action.payload);
     },
+// -------------------------------------------------------- for groups ----------------------------------
+
+
     addGroupToClass: (state, action: PayloadAction<{ classId: number; group: Group }>) => {
-      const classIndex = state.findIndex((c) => c.id === action.payload.classId);
-      if (classIndex !== -1) {
-        state[classIndex].groups.push(action.payload.group);
+      const classIndex = state.classes.findIndex((c) => c.id === action.payload.classId);
+      if (classIndex !== -1 && state.classes[classIndex].groups) {
+        state.classes[classIndex].groups!.push(action.payload.group);
       }
     },
     editGroupInClass: (state, action: PayloadAction<{ classId: number; group: Group }>) => {
-      const classIndex = state.findIndex((c) => c.id === action.payload.classId);
-      if (classIndex !== -1) {
-        const groupIndex = state[classIndex].groups.findIndex((g) => g.id === action.payload.group.id);
+      const classIndex = state.classes.findIndex((c) => c.id === action.payload.classId);
+      if (classIndex !== -1 && state.classes[classIndex].groups) {
+        const groupIndex = state.classes[classIndex].groups!.findIndex((g) => g.id === action.payload.group.id);
         if (groupIndex !== -1) {
-          state[classIndex].groups[groupIndex] = action.payload.group;
+          state.classes[classIndex].groups![groupIndex] = action.payload.group;
         }
       }
     },
     deleteGroupFromClass: (state, action: PayloadAction<{ classId: number; groupId: number }>) => {
-      const classIndex = state.findIndex((c) => c.id === action.payload.classId);
-      if (classIndex !== -1) {
-        state[classIndex].groups = state[classIndex].groups.filter(
+      const classIndex = state.classes.findIndex((c) => c.id === action.payload.classId);
+      if (classIndex !== -1 && state.classes[classIndex].groups) {
+        state.classes[classIndex].groups = state.classes[classIndex].groups!.filter(
           (group) => group.id !== action.payload.groupId
         );
       }
     },
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchClasses.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchClasses.fulfilled, (state, action) => {
+        state.loading = false;
+        state.classes = action.payload.map((classItem: ClassItem) => ({
+          ...classItem,
+          groups: [staticGroup]
+        }));
+      })
+      .addCase(fetchClasses.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message || 'Failed to fetch classes';
+      })
+      .addCase(deleteClassThunk.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(deleteClassThunk.fulfilled, (state, action) => {
+        state.loading = false;
+        state.classes = state.classes.filter(c => c.id !== action.payload);
+      })
+      .addCase(deleteClassThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message || 'Failed to delete class';
+      })
+      .addCase(updateClassThunk.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updateClassThunk.fulfilled, (state, action) => {
+        state.loading = false;
+        const index = state.classes.findIndex(c => c.id === action.payload.id);
+        if (index !== -1) {
+          state.classes[index] = { ...action.payload, groups: [staticGroup] };
+        }
+      })
+      .addCase(updateClassThunk.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error.message || 'Failed to update class';
+      });
   },
 });
 

@@ -9,16 +9,19 @@ import AddModalStudent from "./addModalStudent";
 import DeleteModalClassRoom from "./deleteModalClass";
 import EditModalClass from "./editModalClass";
 import AddModalClassRoom from "./addModalClass";
-import { ClassItem } from "@/store/slices/classesSlice";
+import { ClassItem } from "@/types";
 
 interface ModalManagerProps {
   studentSelected?: Student | null;
   setStudentSelected?: React.Dispatch<React.SetStateAction<Student | null>>;
   classSelected?: ClassItem | null;
-  setClassSelected?: React.Dispatch<React.SetStateAction<ClassItem | null>>;
+  setClassSelected?: React.Dispatch<React.SetStateAction<ClassItem | undefined>>;
+  allSubjects?: any[];
+  selectedSubject?: any[];
+  setSelectedSubject?: React.Dispatch<React.SetStateAction<any[]>>;
 }
 
-export default function ModalManager({ studentSelected, setStudentSelected, classSelected, setClassSelected }: ModalManagerProps) {
+export default function ModalManager({ studentSelected, setStudentSelected, classSelected, setClassSelected, allSubjects, selectedSubject, setSelectedSubject }: ModalManagerProps) {
   const { modalType } = useAppSelector((state) => state.ui);
   const dispatch = useAppDispatch();
 
@@ -53,10 +56,20 @@ export default function ModalManager({ studentSelected, setStudentSelected, clas
         <DeleteModalClassRoom classSelected={safeClassSelected} setClassSelected={safeSetClassSelected} />
       )}
       {modalType === "editClass" && (
-        <EditModalClass classSelected={safeClassSelected} setClassSelected={safeSetClassSelected} />
+        <EditModalClass 
+          classSelected={safeClassSelected} 
+          setClassSelected={safeSetClassSelected}
+          allSubjects={allSubjects || []}
+          selectedSubject={selectedSubject || null}
+          setSelectedSubject={setSelectedSubject || (() => {})}
+        />
       )}
       {modalType === "addClass" && (
-        <AddModalClassRoom />
+        <AddModalClassRoom 
+          allSubjects={allSubjects || []}
+          selectedSubject={selectedSubject || []}
+          setSelectedSubject={setSelectedSubject || (() => {})}
+        />
       )}
     </OverlayModals>
   );

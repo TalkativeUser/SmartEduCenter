@@ -5,12 +5,12 @@ import { X, Edit, Calendar, Clock, Users, DollarSign } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/hooks/redux";
 import { toggleModal } from "../../store/slices/uiSlice";
 import { editGroupInClass } from "@/store/slices/classesSlice";
-import type { Group } from "@/store/slices/classesSlice";
+import type { Group } from "@/types";
 
 interface EditGroupModalProps {
   isOpen: boolean;
-  group: Group | null;
-  classId: number | null;
+  group: Group | undefined;
+  classId: number | undefined;
 }
 
 const translations = {
@@ -24,7 +24,7 @@ const translations = {
     paymentPeriod: "Payment Period",
     startDate: "Start Date",
     description: "Description",
-    explanatoryText: "Explanatory Text",
+    numberOfSessions: "Number of Sessions",
     cancel: "Cancel",
     save: "Save Changes",
     daily: "Daily",
@@ -49,7 +49,7 @@ const translations = {
     paymentPeriod: "فترة الدفع",
     startDate: "تاريخ البداية",
     description: "الوصف",
-    explanatoryText: "النص التوضيحي",
+    numberOfSessions: "عدد الحصص",
     cancel: "إلغاء",
     save: "حفظ التغييرات",
     daily: "يومي",
@@ -89,8 +89,8 @@ export default function EditGroupModal({ isOpen, group, classId }: EditGroupModa
     groupPrice: 100,
     paymentPeriod: "Monthly" as "Daily" | "Monthly",
     startDate: new Date().toISOString().split('T')[0],
-    explanatoryText: "",
     groupDescription: "",
+    numberOfSessions: 10,
   });
 
   useEffect(() => {
@@ -103,8 +103,8 @@ export default function EditGroupModal({ isOpen, group, classId }: EditGroupModa
         groupPrice: group.groupPrice,
         paymentPeriod: group.paymentPeriod,
         startDate: group.startDate,
-        explanatoryText: group.explanatoryText,
         groupDescription: group.groupDescription,
+        numberOfSessions: group.numberOfSessions,
       });
     }
   }, [group]);
@@ -151,8 +151,8 @@ export default function EditGroupModal({ isOpen, group, classId }: EditGroupModa
       groupPrice: formData.groupPrice,
       paymentPeriod: formData.paymentPeriod,
       startDate: formData.startDate,
-      explanatoryText: formData.explanatoryText,
-      groupDescription: formData.groupDescription,
+        groupDescription: formData.groupDescription,
+        numberOfSessions: formData.numberOfSessions,
     };
 
     dispatch(editGroupInClass({ classId, group: updatedGroup }));
@@ -182,7 +182,7 @@ export default function EditGroupModal({ isOpen, group, classId }: EditGroupModa
               </h2>
               <button
                 onClick={handleClose}
-                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors cursor-pointer"
               >
                 <X className="w-6 h-6" />
               </button>
@@ -214,7 +214,7 @@ export default function EditGroupModal({ isOpen, group, classId }: EditGroupModa
                       key={day.key}
                       type="button"
                       onClick={() => handleDayToggle(day.key)}
-                      className={`flex items-center justify-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                      className={`flex items-center justify-center px-3 py-2 rounded-md text-sm font-medium transition-colors cursor-pointer ${
                         formData.day.includes(day.key)
                           ? "bg-blue-600 text-white"
                           : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
@@ -246,7 +246,7 @@ export default function EditGroupModal({ isOpen, group, classId }: EditGroupModa
                         <button
                           type="button"
                           onClick={() => removeTimeSlot(index)}
-                          className="text-red-600 hover:text-red-800 transition-colors"
+                          className="text-red-600 hover:text-red-800 transition-colors cursor-pointer"
                         >
                           <X className="w-4 h-4" />
                         </button>
@@ -256,7 +256,7 @@ export default function EditGroupModal({ isOpen, group, classId }: EditGroupModa
                   <button
                     type="button"
                     onClick={addTimeSlot}
-                    className="flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors text-sm"
+                    className="flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors text-sm cursor-pointer"
                   >
                     <Calendar className="w-4 h-4" />
                     {t.addTime}
@@ -281,6 +281,8 @@ export default function EditGroupModal({ isOpen, group, classId }: EditGroupModa
                     />
                   </div>
                 </div>
+
+          
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -326,7 +328,28 @@ export default function EditGroupModal({ isOpen, group, classId }: EditGroupModa
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                   />
                 </div>
+
+
+            
+
+
               </div>
+
+              <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    {t.numberOfSessions}
+                  </label>
+                  <div className="relative">
+                    <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500" />
+                    <input
+                      type="number"
+                      value={formData.numberOfSessions}
+                      onChange={(e) => setFormData(prev => ({ ...prev, numberOfSessions: parseInt(e.target.value) || 0 }))}
+                      className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                      min="1"
+                    />
+                  </div>
+                </div>
 
               {/* Description */}
               <div>
@@ -342,25 +365,13 @@ export default function EditGroupModal({ isOpen, group, classId }: EditGroupModa
                 />
               </div>
 
-              {/* Explanatory Text */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  {t.explanatoryText}
-                </label>
-                <textarea
-                  value={formData.explanatoryText}
-                  onChange={(e) => setFormData(prev => ({ ...prev, explanatoryText: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                  rows={3}
-                  placeholder={t.explanatoryText}
-                />
-              </div>
+         
             </div>
 
             <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200 dark:border-gray-700">
               <button
                 onClick={handleClose}
-                className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-md transition-colors"
+                className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-md transition-colors cursor-pointer"
               >
                 {t.cancel}
               </button>

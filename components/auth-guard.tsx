@@ -1,10 +1,11 @@
 "use client"
 
 import type React from "react"
-
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { useAppSelector } from "../hooks/redux"
+import { useAppSelector, useAppDispatch } from "../hooks/redux"
+import { checkTeacherToken } from "../store/slices/authSlice"
+import Loading from "./ui/Loading"
 
 interface AuthGuardProps {
   children: React.ReactNode
@@ -12,47 +13,51 @@ interface AuthGuardProps {
   redirectTo?: string
 }
 
-export function AuthGuard({ children, requireAuth = true, redirectTo }: AuthGuardProps) {
+export function AuthGuard({ children, requireAuth, redirectTo }: AuthGuardProps) {
   const router = useRouter()
+  const dispatch = useAppDispatch()
   const { isAuthenticated, loading } = useAppSelector((state) => state.auth)
+  const [isInitializing, setIsInitializing] = useState(true)
+
+  // Check for teacher token on component mount
+  useEffect(() => {
+    dispatch(checkTeacherToken())
+  }, [dispatch])
 
   useEffect(() => {
     if (!loading) {
+      setIsInitializing(false)
       if (requireAuth && !isAuthenticated) {
-        // User needs to be authenticated but isn't - redirect to home
-        router.push(redirectTo || "/home")
+        // المستخدم محتاج يكون داخل لكن مش مسجل دخول
+        router.replace(redirectTo || "/login")
       } else if (!requireAuth && isAuthenticated) {
-        // User is authenticated but trying to access public pages - redirect to dashboard
-        router.push("/dashboard")
+        // صفحة عامة (زي login/register) لكن المستخدم داخل بالفعل
+        router.replace(redirectTo || "/dashboard")
       }
     }
   }, [isAuthenticated, loading, requireAuth, redirectTo, router])
 
-  // Show loading spinner while checking authentication
-  if (loading) {
+
+  // Show loading spinner while checking authentication or initializing
+  if (loading || isInitializing) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      </div>
+      <Loading/>
     )
   }
 
   // Don't render children if redirect is needed
   if (requireAuth && !isAuthenticated) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      </div>
+      <Loading/>
     )
   }
 
   if (!requireAuth && isAuthenticated) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      </div>
+        <Loading/>
     )
   }
+  
 
   return <>{children}</>
 }

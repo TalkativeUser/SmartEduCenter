@@ -5,12 +5,12 @@ import { X, Trash2, AlertTriangle } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/hooks/redux";
 import { toggleModal } from "../../store/slices/uiSlice";
 import { deleteGroupFromClass } from "@/store/slices/classesSlice";
-import type { Group } from "@/store/slices/classesSlice";
+import type { Group } from "@/types";
 
 interface DeleteGroupModalProps {
   isOpen: boolean;
-  group: Group | null;
-  classId: number | null;
+  group: Group | undefined;
+  classId: number | undefined;
 }
 
 const translations = {

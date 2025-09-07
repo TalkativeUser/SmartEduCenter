@@ -5,11 +5,12 @@ import { X, Plus, Calendar, Clock, Users, DollarSign } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/hooks/redux";
 import { toggleModal } from "../../store/slices/uiSlice";
 import { addGroupToClass } from "@/store/slices/classesSlice";
-import type { Group } from "@/store/slices/classesSlice";
+import type { Group } from "@/types";
+import EgyptionPoundIcon from "./egyptionPoundIcon";
 
 interface AddGroupModalProps {
   isOpen: boolean;
-  classId: number | null;
+  classId: number | undefined;
 }
 
 const translations = {
@@ -22,8 +23,8 @@ const translations = {
     price: "Group Price",
     paymentPeriod: "Payment Period",
     startDate: "Start Date",
+    numberOfSessions: "Number of Sessions",
     description: "Description",
-    explanatoryText: "Explanatory Text",
     cancel: "Cancel",
     save: "Save Group",
     daily: "Daily",
@@ -47,8 +48,8 @@ const translations = {
     price: "سعر المجموعة",
     paymentPeriod: "فترة الدفع",
     startDate: "تاريخ البداية",
+    numberOfSessions: "عدد الحصص",
     description: "الوصف",
-    explanatoryText: "النص التوضيحي",
     cancel: "إلغاء",
     save: "حفظ المجموعة",
     daily: "يومي",
@@ -88,7 +89,7 @@ export default function AddGroupModal({ isOpen, classId }: AddGroupModalProps) {
     groupPrice: 100,
     paymentPeriod: "Monthly" as "Daily" | "Monthly",
     startDate: new Date().toISOString().split('T')[0],
-    explanatoryText: "",
+    numberOfSessions: 10,
     groupDescription: "",
   });
 
@@ -102,7 +103,7 @@ export default function AddGroupModal({ isOpen, classId }: AddGroupModalProps) {
       groupPrice: 100,
       paymentPeriod: "Monthly",
       startDate: new Date().toISOString().split('T')[0],
-      explanatoryText: "",
+      numberOfSessions: 10,
       groupDescription: "",
     });
   };
@@ -145,7 +146,7 @@ export default function AddGroupModal({ isOpen, classId }: AddGroupModalProps) {
       groupPrice: formData.groupPrice,
       paymentPeriod: formData.paymentPeriod,
       startDate: formData.startDate,
-      explanatoryText: formData.explanatoryText,
+      numberOfSessions: formData.numberOfSessions,
       groupDescription: formData.groupDescription,
       students: [],
     };
@@ -175,7 +176,7 @@ export default function AddGroupModal({ isOpen, classId }: AddGroupModalProps) {
               </h2>
               <button
                 onClick={handleClose}
-                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors cursor-pointer"
               >
                 <X className="w-6 h-6" />
               </button>
@@ -207,7 +208,7 @@ export default function AddGroupModal({ isOpen, classId }: AddGroupModalProps) {
                       key={day.key}
                       type="button"
                       onClick={() => handleDayToggle(day.key)}
-                      className={`flex items-center justify-center px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                      className={`flex items-center justify-center px-3 py-2 rounded-md text-sm font-medium transition-colors cursor-pointer ${
                         formData.day.includes(day.key)
                           ? "bg-blue-600 text-white"
                           : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
@@ -239,7 +240,7 @@ export default function AddGroupModal({ isOpen, classId }: AddGroupModalProps) {
                         <button
                           type="button"
                           onClick={() => removeTimeSlot(index)}
-                          className="text-red-600 hover:text-red-800 transition-colors"
+                          className="text-red-600 hover:text-red-800 transition-colors cursor-pointer"
                         >
                           <X className="w-4 h-4" />
                         </button>
@@ -249,7 +250,7 @@ export default function AddGroupModal({ isOpen, classId }: AddGroupModalProps) {
                   <button
                     type="button"
                     onClick={addTimeSlot}
-                    className="flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors text-sm"
+                    className="flex items-center gap-2 text-blue-600 hover:text-blue-800 transition-colors text-sm cursor-pointer"
                   >
                     <Plus className="w-4 h-4" />
                     {t.addTime}
@@ -280,7 +281,7 @@ export default function AddGroupModal({ isOpen, classId }: AddGroupModalProps) {
                     {t.price}
                   </label>
                   <div className="relative">
-                    <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500" />
+                    <EgyptionPoundIcon className="absolute left-1 top-1/2 transform -translate-y-1/2 w-[34px] h-[34px]" />
                     <input
                       type="number"
                       value={formData.groupPrice}
@@ -321,6 +322,22 @@ export default function AddGroupModal({ isOpen, classId }: AddGroupModalProps) {
                 </div>
               </div>
 
+              <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    {t.numberOfSessions}
+                  </label>
+                  <div className="relative">
+                    <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500" />
+                    <input
+                      type="number"
+                      value={formData.numberOfSessions}
+                      onChange={(e) => setFormData(prev => ({ ...prev, numberOfSessions: parseInt(e.target.value) || 0 }))}
+                      className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                      min="1"
+                    />
+                  </div>
+                </div>
+
               {/* Description */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -335,25 +352,13 @@ export default function AddGroupModal({ isOpen, classId }: AddGroupModalProps) {
                 />
               </div>
 
-              {/* Explanatory Text */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  {t.explanatoryText}
-                </label>
-                <textarea
-                  value={formData.explanatoryText}
-                  onChange={(e) => setFormData(prev => ({ ...prev, explanatoryText: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                  rows={3}
-                  placeholder={t.explanatoryText}
-                />
-              </div>
+  
             </div>
 
             <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200 dark:border-gray-700">
               <button
                 onClick={handleClose}
-                className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-md transition-colors"
+                className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-md transition-colors cursor-pointer"
               >
                 {t.cancel}
               </button>

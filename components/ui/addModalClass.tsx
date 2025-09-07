@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { useAppDispatch } from "@/hooks/redux";
 import { addClass } from "@/store/slices/classesSlice";
 import { toggleModal } from "@/store/slices/uiSlice";
+import {  createClassRoom } from "@/lib/api/classRooms";
 import {
   Dialog,
   DialogContent,
@@ -16,32 +17,54 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAppSelector } from "@/hooks/redux";
-import type { ClassItem } from "@/store/slices/classesSlice";
+import type { ClassItem } from "@/types";
 
-export default function AddModalClassRoom() {
+interface AddModalClassRoomProps {
+  allSubjects: any[];
+  selectedSubject: any;
+  setSelectedSubject: React.Dispatch<React.SetStateAction<any>>;
+}
+
+export default function AddModalClassRoom({ allSubjects, selectedSubject, setSelectedSubject }: AddModalClassRoomProps) {
   const dispatch = useAppDispatch();
   const { language } = useAppSelector((state) => state.ui);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<ClassItem> ({
     name: "",
-    teacher: "",
-    students: 0,
-    status: "active" as "active" | "inactive",
+    start_year: "",
+    end_year: "",
+    year: "",
+    groups: [],
+    subject_id: undefined,
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const newClass: ClassItem = {
-      id: Date.now(), // Simple ID generation
-      ...formData,
-    };
-    dispatch(addClass(newClass));
-    dispatch(toggleModal(null));
-    setFormData({ name: "", teacher: "", students: 0, status: "active" });
+    try {
+      // Call the API to create the classroom
+     const createdClass = await createClassRoom(formData);
+      console.log("createdClass => ", createdClass);
+      
+      // Add the created class to Redux store
+      const newClass: ClassItem = {
+     
+       year:formData.year,
+        ...createdClass // Merge any additional data from API response
+      };
+      dispatch(addClass(newClass));
+      
+      dispatch(toggleModal(null));
+      setFormData({ id:undefined,name: "", start_year: "", end_year: "", year: "", groups: [], subject_id: undefined });
+      
+      // console.log('Classroom created successfully:', createdClass);
+    } catch (error) {
+      console.error('Failed to create classroom:', error);
+      // You might want to show an error message to the user here
+    }
   };
 
   const handleCancel = () => {
     dispatch(toggleModal(null));
-    setFormData({ name: "", teacher: "", students: 0, status: "active" });
+    setFormData({ id:undefined,name: "", start_year: "", end_year: "", year: "", groups: [], subject_id: undefined });
   };
 
   const t = {
@@ -49,11 +72,11 @@ export default function AddModalClassRoom() {
       title: "Add New Classroom",
       description: "Fill in the information below to create a new classroom.",
       name: "Class Name",
-      teacher: "Teacher",
-      students: "Number of Students",
-      status: "Status",
-      active: "Active",
-      inactive: "Inactive",
+      start_year: "Start Year",
+      end_year: "End Year",
+      year: "Year",
+      subject: "Subject",
+      selectSubject: "Select a subject",
       add: "Add Classroom",
       cancel: "Cancel",
     },
@@ -61,11 +84,11 @@ export default function AddModalClassRoom() {
       title: "إضافة فصل دراسي جديد",
       description: "املأ المعلومات أدناه لإنشاء فصل دراسي جديد.",
       name: "اسم الفصل",
-      teacher: "المعلم",
-      students: "عدد الطلاب",
-      status: "الحالة",
-      active: "نشط",
-      inactive: "غير نشط",
+      start_year: "السنة البدء",
+      end_year: "السنة الانتهاء",
+      year: "السنة",
+      subject: "المادة",
+      selectSubject: "اختر مادة",
       add: "إضافة فصل دراسي",
       cancel: "إلغاء",
     },
@@ -91,36 +114,59 @@ export default function AddModalClassRoom() {
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="teacher">{currentLanguage.teacher}</Label>
+            <Label htmlFor="start_year">{currentLanguage.start_year}</Label>
             <Input
-              id="teacher"
-              value={formData.teacher}
-              onChange={(e) => setFormData({ ...formData, teacher: e.target.value })}
+              id="start_year"
+              value={formData.start_year}
+              onChange={(e) => setFormData({ ...formData, start_year: e.target.value })}
               required
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="students">{currentLanguage.students}</Label>
+            <Label htmlFor="end_year">{currentLanguage.end_year}</Label>
             <Input
-              id="students"
-              type="number"
-              value={formData.students}
-              onChange={(e) => setFormData({ ...formData, students: parseInt(e.target.value) || 0 })}
+              id="end_year"
+              type="text"
+              value={formData.end_year}
+              onChange={(e) => setFormData({ ...formData, end_year: e.target.value })}
               required
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="status">{currentLanguage.status}</Label>
-            <Select value={formData.status} onValueChange={(value: "active" | "inactive") => setFormData({ ...formData, status: value })}>
-              <SelectTrigger className="cursor-pointer">
-                <SelectValue />
+            <Label htmlFor="year">{currentLanguage.year}</Label>
+            <Input
+              id="year"
+              type="text"
+              value={formData.year}
+              onChange={(e) => setFormData({ ...formData, year: e.target.value })}
+              required
+            />
+          </div>
+          
+          <div className="grid gap-2">
+            <Label htmlFor="subject">{currentLanguage.subject}</Label>
+            <Select 
+              value={formData.subject_id?.toString() || ''} 
+              onValueChange={(value) => {
+                setFormData({ ...formData, subject_id: value });
+                const selected = allSubjects.find(subject => subject.id?.toString() === value);
+                setSelectedSubject(selected);
+                console.log('Selected subject:', selected);
+              }}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder={currentLanguage.selectSubject} />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="active" className="cursor-pointer">{currentLanguage.active}</SelectItem>
-                <SelectItem value="inactive" className="cursor-pointer">{currentLanguage.inactive}</SelectItem>
+              <SelectContent className="max-h-[250px] overflow-y-auto" >
+                {allSubjects?.map((subject) => (
+                  <SelectItem key={subject.id} value={subject.id?.toString() || ''}  onChange={() => setFormData({ ...formData, subject_id: subject.id })} >
+                    {subject.name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
+
           <DialogFooter>
             <Button type="button" variant="outline" onClick={handleCancel} className="cursor-pointer">
               {currentLanguage.cancel}

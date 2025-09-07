@@ -1,6 +1,7 @@
+
 "use client"
 
-import React from "react"
+import React, { useRef, useState, useEffect } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Button } from "../../components/ui/button"
@@ -9,42 +10,38 @@ import { Input } from "../../components/ui/input"
 import { Label } from "../../components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select"
 import { Alert, AlertDescription } from "../../components/ui/alert"
-import { Checkbox } from "../../components/ui/checkbox"
 import { PublicLayout } from "../../components/public-layout"
 import { useAppDispatch, useAppSelector } from "../../hooks/redux"
-import { loginStart, loginSuccess, loginFailure, clearError } from "../../store/slices/authSlice"
-import { mockRegister } from "../../utils/auth"
+import { clearError } from "../../store/slices/authSlice"
 import { Eye, EyeOff, AlertCircle, Loader2 } from "lucide-react"
+import { registerTeacher } from "@/lib/api/auth"
+import { Teacher } from "@/types"
 
 export default function RegisterPage() {
   const router = useRouter()
   const dispatch = useAppDispatch()
-  const { loading, error, isAuthenticated, language } = useAppSelector((state) => ({
-    loading: state.auth.loading,
+  const { error, isAuthenticated, language } = useAppSelector((state) => ({
     error: state.auth.error,
     isAuthenticated: state.auth.isAuthenticated,
     language: state.ui.language,
   }))
 
-  const [formData, setFormData] = React.useState({
-    name: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-    role: "" as "teacher" | "student" | "",
-    agreeToTerms: false,
-  })
-  const [showPassword, setShowPassword] = React.useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = React.useState(false)
-  const [validationErrors, setValidationErrors] = React.useState<string[]>([])
+  const formRef = useRef<HTMLFormElement>(null)
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [validationErrors, setValidationErrors] = useState<string[]>([])
+  const [gender, setGender] = useState<"male" | "female" | "">("")
+  const [successMessage, setSuccessMessage] = useState<string>("")
+  const [loading, setLoading] = useState<boolean>(false)
+  
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (isAuthenticated) {
       router.push("/dashboard")
     }
   }, [isAuthenticated, router])
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (error) {
       const timer = setTimeout(() => {
         dispatch(clearError())
@@ -53,29 +50,29 @@ export default function RegisterPage() {
     }
   }, [error, dispatch])
 
-  const validateForm = () => {
+  const validateForm = (data: Record<string, any>) => {
     const errors: string[] = []
 
-    if (formData.name.length < 2) {
+    if (!data.name || data.name.length < 2) {
       errors.push(language === "en" ? "Name must be at least 2 characters" : "يجب أن يكون الاسم على الأقل حرفين")
     }
 
-    if (formData.password.length < 6) {
+    if (!data.phone || data.phone.length < 10) {
+      errors.push(language === "en" ? "Please enter a valid phone number" : "يرجى إدخال رقم هاتف صحيح")
+    }
+
+    if (!data.gender) {
+      errors.push(language === "en" ? "Please select your gender" : "يرجى اختيار جنسك")
+    }
+
+    if (!data.password || data.password.length < 6) {
       errors.push(
         language === "en" ? "Password must be at least 6 characters" : "يجب أن تكون كلمة المرور على الأقل 6 أحرف",
       )
     }
 
-    if (formData.password !== formData.confirmPassword) {
+    if (data.password !== data.confirmPassword) {
       errors.push(language === "en" ? "Passwords do not match" : "كلمات المرور غير متطابقة")
-    }
-
-    if (!formData.role) {
-      errors.push(language === "en" ? "Please select your role" : "يرجى اختيار دورك")
-    }
-
-    if (!formData.agreeToTerms) {
-      errors.push(language === "en" ? "You must agree to the terms and conditions" : "يجب أن توافق على الشروط والأحكام")
     }
 
     setValidationErrors(errors)
@@ -84,41 +81,46 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!formRef.current) return
 
-    if (!validateForm()) {
+    const formData = new FormData(formRef.current)
+    const data = Object.fromEntries(formData.entries()) as Teacher
+
+    // نضيف الجندر لأنه جاي من Select مش من input
+    data.gender = gender
+
+    if (!validateForm(data)) {
       return
     }
 
-    dispatch(loginStart())
-
+    console.log("Form Data:", data)
+    
     try {
-      const user = await mockRegister(formData.name, formData.email, formData.password, formData.role)
-      dispatch(loginSuccess(user))
-      router.push("/dashboard")
-    } catch (err) {
-      dispatch(loginFailure(err instanceof Error ? err.message : "Registration failed"))
+      setLoading(true)
+      const result = await dispatch(registerTeacher(data))
+      
+      // Check if registration was successful
+      if (result && result.success) {
+        // Show success message
+        setSuccessMessage(
+          language === "en" 
+            ? "Account created successfully! Redirecting to login..." 
+            : "تم إنشاء الحساب بنجاح! جاري التوجيه لصفحة تسجيل الدخول..."
+        )
+        
+        // Clear any validation errors
+        setValidationErrors([])
+        
+        // Redirect to login page after a short delay
+        setTimeout(() => {
+          router.push("/login")
+        }, 2000)
+      }
+    } catch (error) {
+      console.error("Registration error:", error)
+    } finally {
+      setLoading(false)
     }
-  }
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    })
-  }
-
-  const handleRoleChange = (value: string) => {
-    setFormData({
-      ...formData,
-      role: value as "teacher" | "student",
-    })
-  }
-
-  const handleCheckboxChange = (checked: boolean) => {
-    setFormData({
-      ...formData,
-      agreeToTerms: checked,
-    })
   }
 
   return (
@@ -139,7 +141,16 @@ export default function RegisterPage() {
               <CardTitle className="text-center">{language === "en" ? "Register" : "التسجيل"}</CardTitle>
             </CardHeader>
             <CardContent>
-              {(error || validationErrors.length > 0) && (
+              {successMessage && (
+                <Alert className="mb-6 border-green-200 bg-green-50">
+                  <AlertCircle className="h-4 w-4 text-green-600" />
+                  <AlertDescription className="text-green-800">
+                    {successMessage}
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              {(error || validationErrors.length > 0) && !successMessage && (
                 <Alert variant="destructive" className="mb-6">
                   <AlertCircle className="h-4 w-4" />
                   <AlertDescription>
@@ -151,7 +162,7 @@ export default function RegisterPage() {
                 </Alert>
               )}
 
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <form ref={formRef} onSubmit={handleSubmit} className="space-y-6">
                 <div>
                   <Label htmlFor="name">{language === "en" ? "Full Name" : "الاسم الكامل"}</Label>
                   <Input
@@ -159,8 +170,6 @@ export default function RegisterPage() {
                     name="name"
                     type="text"
                     required
-                    value={formData.name}
-                    onChange={handleChange}
                     placeholder={language === "en" ? "Enter your full name" : "أدخل اسمك الكامل"}
                     className="mt-1"
                   />
@@ -173,24 +182,45 @@ export default function RegisterPage() {
                     name="email"
                     type="email"
                     required
-                    value={formData.email}
-                    onChange={handleChange}
                     placeholder={language === "en" ? "Enter your email address" : "أدخل عنوان بريدك الإلكتروني"}
                     className="mt-1"
                   />
                 </div>
 
                 <div>
-                  <Label htmlFor="role">{language === "en" ? "Role" : "الدور"}</Label>
-                  <Select onValueChange={handleRoleChange} value={formData.role}>
+                  <Label htmlFor="phone">{language === "en" ? "Phone Number" : "رقم الهاتف"}</Label>
+                  <Input
+                    id="phone"
+                    name="phone"
+                    type="tel"
+                    required
+                    placeholder={language === "en" ? "Enter your phone number" : "أدخل رقم هاتفك"}
+                    className="mt-1"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="gender">{language === "en" ? "Gender" : "الجنس"}</Label>
+                  <Select onValueChange={(value) => setGender(value as "male" | "female")} value={gender}>
                     <SelectTrigger className="mt-1">
-                      <SelectValue placeholder={language === "en" ? "Select your role" : "اختر دورك"} />
+                      <SelectValue placeholder={language === "en" ? "Select your gender" : "اختر جنسك"} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="teacher">{language === "en" ? "Teacher" : "معلم"}</SelectItem>
-                      <SelectItem value="student">{language === "en" ? "Student" : "طالب"}</SelectItem>
+                      <SelectItem value="male">{language === "en" ? "Male" : "ذكر"}</SelectItem>
+                      <SelectItem value="female">{language === "en" ? "Female" : "أنثى"}</SelectItem>
                     </SelectContent>
                   </Select>
+                </div>
+
+                <div>
+                  <Label htmlFor="image">{language === "en" ? "Profile Image URL" : "رابط صورة الملف الشخصي"}</Label>
+                  <Input
+                    id="image"
+                    name="image"
+                    type="url"
+                    placeholder={language === "en" ? "Enter profile image URL" : "أدخل رابط صورة الملف الشخصي"}
+                    className="mt-1"
+                  />
                 </div>
 
                 <div>
@@ -201,8 +231,6 @@ export default function RegisterPage() {
                       name="password"
                       type={showPassword ? "text" : "password"}
                       required
-                      value={formData.password}
-                      onChange={handleChange}
                       placeholder={language === "en" ? "Create a password" : "إنشاء كلمة مرور"}
                       className="pr-10"
                     />
@@ -230,8 +258,6 @@ export default function RegisterPage() {
                       name="confirmPassword"
                       type={showConfirmPassword ? "text" : "password"}
                       required
-                      value={formData.confirmPassword}
-                      onChange={handleChange}
                       placeholder={language === "en" ? "Confirm your password" : "أكد كلمة المرور"}
                       className="pr-10"
                     />
@@ -249,40 +275,11 @@ export default function RegisterPage() {
                   </div>
                 </div>
 
-                <div className="flex items-center space-x-2">
-                  <Checkbox id="agreeToTerms" checked={formData.agreeToTerms} onCheckedChange={handleCheckboxChange} />
-                  <Label htmlFor="agreeToTerms" className="text-sm">
-                    {language === "en" ? (
-                      <>
-                        I agree to the{" "}
-                        <a href="#" className="text-blue-600 hover:text-blue-500">
-                          Terms and Conditions
-                        </a>{" "}
-                        and{" "}
-                        <a href="#" className="text-blue-600 hover:text-blue-500">
-                          Privacy Policy
-                        </a>
-                      </>
-                    ) : (
-                      <>
-                        أوافق على{" "}
-                        <a href="#" className="text-blue-600 hover:text-blue-500">
-                          الشروط والأحكام
-                        </a>{" "}
-                        و{" "}
-                        <a href="#" className="text-blue-600 hover:text-blue-500">
-                          سياسة الخصوصية
-                        </a>
-                      </>
-                    )}
-                  </Label>
-                </div>
-
-                <Button type="submit" className="w-full" size="lg" disabled={loading}>
+                <Button type="submit" className="w-full" size="lg">
                   {loading ? (
                     <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      {language === "en" ? "Creating account..." : "جاري إنشاء الحساب..."}
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                     
                     </>
                   ) : (
                     <>{language === "en" ? "Create account" : "إنشاء حساب"}</>

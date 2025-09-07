@@ -3,14 +3,15 @@ import React from "react";
 import { Pencil, Trash2, Users, Calendar, Clock, DollarSign } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/hooks/redux";
 import { toggleModal } from "../../store/slices/uiSlice";
-import type { Group } from "@/store/slices/classesSlice";
+import type { Group } from "@/types";
 import { cn } from "@/lib/utils";
+import EgyptionPoundIcon from "./egyptionPoundIcon";
 
 export interface GroupRowProps {
   group: Group;
-  classId: number;
-  setGroupSelected: React.Dispatch<React.SetStateAction<Group | null>>;
-  setClassSelected: React.Dispatch<React.SetStateAction<number | null>>;
+  classId: number|undefined;
+  setGroupSelected: React.Dispatch<React.SetStateAction<Group | undefined>>;
+  setClassSelected: React.Dispatch<React.SetStateAction<number | undefined>>;
 }
 
 const groupTranslations = {
@@ -93,7 +94,7 @@ export default function GroupRow({ group, classId, setGroupSelected, setClassSel
       </td>
       <td className="px-4 py-3">
         <div className="flex items-center gap-1 text-sm font-medium text-gray-900 dark:text-gray-100">
-          <DollarSign className="w-4 h-4 text-green-600" />
+        <EgyptionPoundIcon className="w-[34px] h-[34px]" />
           <span>{group.groupPrice}</span>
         </div>
       </td>
@@ -111,14 +112,14 @@ export default function GroupRow({ group, classId, setGroupSelected, setClassSel
         <div className="flex gap-2 opacity-100 transition-opacity duration-200">
           <button
             onClick={handleEdit}
-            className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:-translate-y-1 hover:scale-110 transition-all duration-200"
+            className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:-translate-y-1 hover:scale-110 transition-all duration-200 cursor-pointer "
             title={t.editGroup}
           >
             <Pencil size={16} />
           </button>
           <button
             onClick={handleDelete}
-            className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 hover:-translate-y-1 hover:scale-110 transition-all duration-200"
+            className="text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 hover:-translate-y-1 hover:scale-110 transition-all duration-200 cursor-pointer"
             title={t.deleteGroup}
           >
             <Trash2 size={16} />

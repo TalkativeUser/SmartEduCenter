@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import { useAppDispatch } from "@/hooks/redux";
-import { deleteClass } from "@/store/slices/classesSlice";
+import { deleteClassThunk } from "@/store/slices/classesSlice";
 import { toggleModal } from "@/store/slices/uiSlice";
 import {
   Dialog,
@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useAppSelector } from "@/hooks/redux";
-import type { ClassItem } from "@/store/slices/classesSlice";
+import type { ClassItem } from "@/types";
 
 interface Props {
   classSelected: ClassItem | null;
@@ -25,8 +25,8 @@ export default function DeleteModalClassRoom({ classSelected, setClassSelected }
   const { language } = useAppSelector((state) => state.ui);
 
   const handleDelete = () => {
-    if (classSelected) {
-      dispatch(deleteClass(classSelected.id));
+    if (classSelected && classSelected.id) {
+      dispatch(deleteClassThunk(classSelected.id));
       dispatch(toggleModal(null));
       setClassSelected(null);
     }

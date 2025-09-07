@@ -4,7 +4,7 @@ import { Pencil, Trash2, PlusCircle, MinusCircle, Plus } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAppDispatch, useAppSelector } from "@/hooks/redux";
 import { toggleModal } from "../../store/slices/uiSlice";
-import type { ClassItem, Group } from "@/store/slices/classesSlice";
+import type { ClassItem, Group } from "@/types";
 import { cn } from "@/lib/utils";
 import GroupRow from "./groupRow";
 
@@ -12,9 +12,10 @@ export interface ClassItemRow extends ClassItem {}
 
 interface ClassRowProps {
   classItem: ClassItemRow;
-  setClassSelected: React.Dispatch<React.SetStateAction<ClassItemRow | null>>;
-  setGroupSelected: React.Dispatch<React.SetStateAction<Group | null>>;
-  setClassSelectedForGroup: React.Dispatch<React.SetStateAction<number | null>>;
+  setClassSelected: React.Dispatch<React.SetStateAction<ClassItemRow | undefined>>;
+  setGroupSelected: React.Dispatch<React.SetStateAction<Group | undefined>>;
+  setClassSelectedForGroup: React.Dispatch<React.SetStateAction<number | undefined>>;
+  allSubjects: any[];
 }
 
 const groupTranslations = {
@@ -28,6 +29,7 @@ const groupTranslations = {
     payment: "Payment",
     actions: "Actions",
     addGroup: "Add Group",
+    noGroups: "No groups available.",
   },
   ar: {
     groupsFor: "المجموعات الخاصة بـ",
@@ -39,12 +41,13 @@ const groupTranslations = {
     payment: "الدفع",
     actions: "الإجراءات",
     addGroup: "إضافة مجموعة",
+    noGroups: "لا يوجد مجموعات متاحة.",
   },
 };
 
 
 
-export default function ClassRoomRow({ classItem, setClassSelected, setGroupSelected, setClassSelectedForGroup }: ClassRowProps) {
+export default function ClassRoomRow({ classItem, setClassSelected, setGroupSelected, setClassSelectedForGroup, allSubjects }: ClassRowProps) {
   const dispatch = useAppDispatch();
   const [expanded, setExpanded] = useState(false);
   const { language } = useAppSelector((state) => state.ui);
@@ -84,9 +87,12 @@ export default function ClassRoomRow({ classItem, setClassSelected, setGroupSele
           </button>
           {classItem.name}
         </td>
-        <td className="px-6 py-4 text-start">{classItem.teacher}</td>
-        <td className="px-6 py-4 text-start">{classItem.students}</td>
-        <td className="px-6 py-4 capitalize">{classItem.status}</td>
+        <td className="px-6 py-4 text-start">{classItem.start_year}</td>
+        <td className="px-6 py-4 text-start">{classItem.end_year}</td>
+        {/* <td className="px-6 py-4 text-start">{classItem.year}</td> */}
+        <td className="px-6 py-4 text-start">
+          {allSubjects.find(subject => subject.id?.toString() === classItem.subject_id?.toString())?.name || '-'}
+        </td>
         <td className="px-6 py-4 flex gap-3">
           <button
             onClick={() => handleEdit(classItem)}
@@ -122,7 +128,7 @@ export default function ClassRoomRow({ classItem, setClassSelected, setGroupSele
                   </h4>
                   <button
                     onClick={handleAddGroup}
-                    className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-200 hover:scale-105 transform"
+                    className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-200 hover:scale-105 transform cursor-pointer"
                   >
                     <Plus size={16} />
                     {t.addGroup}
@@ -142,7 +148,7 @@ export default function ClassRoomRow({ classItem, setClassSelected, setGroupSele
                       </tr>
                     </thead>
                     <tbody>
-                      {classItem.groups.map((group) => (
+                      { classItem.groups&&classItem.groups.length > 0 ? classItem.groups.map((group) => (
                         <GroupRow
                           key={group.id}
                           group={group}
@@ -150,7 +156,13 @@ export default function ClassRoomRow({ classItem, setClassSelected, setGroupSele
                           setGroupSelected={setGroupSelected}
                           setClassSelected={setClassSelectedForGroup}
                         />
-                      ))}
+                      )) : (
+                        <tr>
+                          <td colSpan={7} className="text-center py-4 text-gray-500 dark:text-gray-400">
+                            {t.noGroups}
+                          </td>
+                        </tr>
+                      )}
                     </tbody>
                   </table>
                 </div>
