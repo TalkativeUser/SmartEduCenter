@@ -23,18 +23,22 @@ export interface ClassItem {
       parentName: string;
   }
   
+
   export interface Group {
-    id: number;
+    id?: number;
     name: string;
-    day: string[];
-    time: string[];
-    maximumStudents: number;
-    groupPrice: number;
-    paymentPeriod: "Daily" | "Monthly";
-    startDate: string;
-    groupDescription: string;
-    numberOfSessions: number;
-    students: Student[];
+   class_id?:number;
+   number_of_sessions: number;
+   price_of_group: number;
+   times: {
+    session_time: string;
+    day_name: string;
+   }[];
+    maximum_students: number;
+    payment_period: "Daily" | "Monthly";
+    start_date: string;
+    group_description: string;
+   
   }
 
   export type Teacher = {
@@ -46,3 +50,4 @@ export interface ClassItem {
     confirmPassword?: string;
     image: string;
   };
+

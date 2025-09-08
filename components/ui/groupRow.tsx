@@ -62,43 +62,43 @@ export default function GroupRow({ group, classId, setGroupSelected, setClassSel
       </td>
       <td className="px-4 py-3">
         <div className="flex flex-wrap gap-1">
-          {group.day.map((day, index) => (
+          {group.times.map((time, index) => (
             <span
               key={index}
               className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200"
             >
               <Calendar className="w-3 h-3 mr-1" />
-              {day.slice(0, 3)}
+              {time.day_name.slice(0, 3)}
             </span>
           ))}
         </div>
       </td>
       <td className="px-4 py-3">
         <div className="flex flex-wrap gap-1">
-          {group.time.map((time, index) => (
+          {group.times.map((time, index) => (
             <span
               key={index}
               className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
             >
               <Clock className="w-3 h-3 mr-1" />
-              {time}
+              {time.session_time}
             </span>
           ))}
         </div>
       </td>
-      <td className="px-4 py-3">
+      {/* <td className="px-4 py-3">
         <div className="flex items-center gap-1 text-sm text-gray-600 dark:text-gray-300">
           <Users className="w-4 h-4" />
           <span>{group.students.length}/{group.maximumStudents}</span>
         </div>
-      </td>
+      </td> */}
       <td className="px-4 py-3">
         <div className="flex items-center gap-1 text-sm font-medium text-gray-900 dark:text-gray-100">
         <EgyptionPoundIcon className="w-[34px] h-[34px]" />
-          <span>{group.groupPrice}</span>
+          <span>{group.price_of_group}</span>
         </div>
       </td>
-      <td className="px-4 py-3">
+      {/* <td className="px-4 py-3">
         <span className={cn(
           "inline-flex items-center px-2 py-1 rounded-full text-xs font-medium",
           group.paymentPeriod === "Monthly" 
@@ -107,7 +107,7 @@ export default function GroupRow({ group, classId, setGroupSelected, setClassSel
         )}>
           {group.paymentPeriod}
         </span>
-      </td>
+      </td> */}
       <td className="px-4 py-3">
         <div className="flex gap-2 opacity-100 transition-opacity duration-200">
           <button

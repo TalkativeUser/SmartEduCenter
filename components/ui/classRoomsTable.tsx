@@ -66,28 +66,33 @@ export default function ClassRoomsTable({ allSubjects, selectedSubject, setSelec
           </tr>
         </thead>
         <tbody>
-          {loading ? (
-            <tr>
-              <Loading/>
-            </tr>
-          ) : error ? (
-            <tr>
-              <td colSpan={6} className="text-center py-6 text-red-500">
-                Error: {error}
-              </td>
-            </tr>
-          ) : (
-            classes.map((classItem) => (
-              <ClassRoomRow 
-                key={classItem.id} 
-                classItem={classItem} 
-                setClassSelected={setClassSelected}
-                setGroupSelected={setGroupSelected}
-                setClassSelectedForGroup={setClassSelectedForGroup}
-                allSubjects={allSubjects}
-              />
-            ))
-          )}
+        
+        {loading ? (
+                <tr>
+                  <td colSpan={6} className="text-center py-6">
+                    <Loading />
+                  </td>
+                </tr>
+              ) : error ? (
+                <tr>
+                  <td colSpan={6} className="text-center py-6 text-red-500">
+                    Error: {error}
+                  </td>
+                </tr>
+              ) : (
+                classes.map((classItem:ClassItem) => (
+                  <ClassRoomRow 
+                    key={classItem.id} 
+                    classItem={classItem} 
+                    setClassSelected={setClassSelected}
+                    setGroupSelected={setGroupSelected}
+                    setClassSelectedForGroup={setClassSelectedForGroup}
+                    allSubjects={allSubjects}
+                  />
+                ))
+              )}
+
+
         </tbody>
       </table>
 

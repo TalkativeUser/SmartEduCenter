@@ -6,15 +6,28 @@ import { getAllClasses, deleteClass as deleteClassAPI, updateClass as updateClas
 const staticGroup: Group = {
   id: 1,
   name: "المجموعة الأساسية",
-  day: ["Sunday", "Tuesday", "Thursday"],
-  time: ["17:00", "17:00", "17:00"],
-  maximumStudents: 25,
-  groupPrice: 150,
-  paymentPeriod: "Monthly",
-  startDate: "2025-09-01",
-  groupDescription: "المجموعة الأساسية للفصل",
-  numberOfSessions: 10,
-  students: [],
+  class_id: 5,
+  number_of_sessions: 3,
+  price_of_group: 100,
+  times: [
+    {
+      session_time: "03:00",
+      day_name: "sunday"
+    },
+    {
+      session_time: "04:30",
+      day_name: "Thursday"
+    },
+    {
+      session_time: "06:30",
+      day_name: "Thursday"
+    }
+  ],
+  maximum_students: 25,
+  payment_period: "Monthly",
+  start_date: "2025-09-01",
+  group_description: "المجموعة الأساسية للفصل",
+  // students: [],
 };
 
 // Async thunk for fetching classes
@@ -96,6 +109,10 @@ const classesSlice = createSlice({
     },
 // -------------------------------------------------------- for groups ----------------------------------
 
+// update all components related to groups  :
+// 1- addGroupToClass
+// 2- editGroupInClass
+// 3- deleteGroupFromClass
 
     addGroupToClass: (state, action: PayloadAction<{ classId: number; group: Group }>) => {
       const classIndex = state.classes.findIndex((c) => c.id === action.payload.classId);

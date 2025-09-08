@@ -83,31 +83,30 @@ export default function EditGroupModal({ isOpen, group, classId }: EditGroupModa
 
   const [formData, setFormData] = useState({
     name: "",
+    class_id: 0,
+    number_of_sessions: 10,
+    price_of_group: 1000,
+    times: [] as {
+      session_time: string;
+      day_name: string;
+    }[],
     day: [] as string[],
-    time: [""],
-    maximumStudents: 20,
-    groupPrice: 100,
-    paymentPeriod: "Monthly" as "Daily" | "Monthly",
-    startDate: new Date().toISOString().split('T')[0],
-    groupDescription: "",
-    numberOfSessions: 10,
+    time: [""] as string[]
   });
 
   useEffect(() => {
     if (group) {
       setFormData({
         name: group.name,
-        day: [...group.day],
-        time: [...group.time],
-        maximumStudents: group.maximumStudents,
-        groupPrice: group.groupPrice,
-        paymentPeriod: group.paymentPeriod,
-        startDate: group.startDate,
-        groupDescription: group.groupDescription,
-        numberOfSessions: group.numberOfSessions,
+        class_id: group.class_id || classId || 0,
+        number_of_sessions: group.number_of_sessions || 10,
+        price_of_group: group.price_of_group || 1000,
+        times: group.times || [],
+        day: group.times?.map(item => item.day_name) || [],
+        time: group.times?.map(item => item.session_time) || [""]
       });
     }
-  }, [group]);
+  }, [group, classId]);
 
   const handleClose = () => {
     dispatch(toggleModal(null));
@@ -142,17 +141,24 @@ export default function EditGroupModal({ isOpen, group, classId }: EditGroupModa
   const handleSave = () => {
     if (!group || !classId || !formData.name.trim() || formData.day.length === 0) return;
 
+    // Convert day and time arrays to times array format
+    const times = formData.day.flatMap(day => 
+      formData.time.map(time => ({
+        day_name: day,
+        session_time: time
+      }))
+    ).filter(item => item.session_time.trim() !== "");
+
     const updatedGroup: Group = {
       ...group,
       name: formData.name,
-      day: formData.day,
-      time: formData.time.filter(t => t.trim() !== ""),
-      maximumStudents: formData.maximumStudents,
-      groupPrice: formData.groupPrice,
-      paymentPeriod: formData.paymentPeriod,
-      startDate: formData.startDate,
-        groupDescription: formData.groupDescription,
-        numberOfSessions: formData.numberOfSessions,
+      class_id: classId,
+      number_of_sessions: formData.number_of_sessions || 10,
+      price_of_group: formData.price_of_group || 1000,
+      times: times,
+      // Keep these for UI compatibility
+      // day: formData.day,
+      // time: formData.time.filter(t => t.trim() !== "")
     };
 
     dispatch(editGroupInClass({ classId, group: updatedGroup }));
@@ -274,7 +280,7 @@ export default function EditGroupModal({ isOpen, group, classId }: EditGroupModa
                     <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500" />
                     <input
                       type="number"
-                      value={formData.maximumStudents}
+                      value={"formData.maximumStudents"}
                       onChange={(e) => setFormData(prev => ({ ...prev, maximumStudents: parseInt(e.target.value) || 0 }))}
                       className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                       min="1"
@@ -292,8 +298,8 @@ export default function EditGroupModal({ isOpen, group, classId }: EditGroupModa
                     <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500" />
                     <input
                       type="number"
-                      value={formData.groupPrice}
-                      onChange={(e) => setFormData(prev => ({ ...prev, groupPrice: parseInt(e.target.value) || 0 }))}
+                      value={formData.price_of_group}
+                      onChange={(e) => setFormData(prev => ({ ...prev, price_of_group: parseInt(e.target.value) || 0 }))}
                       className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                       min="0"
                     />
@@ -308,7 +314,7 @@ export default function EditGroupModal({ isOpen, group, classId }: EditGroupModa
                     {t.paymentPeriod}
                   </label>
                   <select
-                    value={formData.paymentPeriod}
+                    value={"formData.paymentPeriod"}
                     onChange={(e) => setFormData(prev => ({ ...prev, paymentPeriod: e.target.value as "Daily" | "Monthly" }))}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                   >
@@ -323,7 +329,7 @@ export default function EditGroupModal({ isOpen, group, classId }: EditGroupModa
                   </label>
                   <input
                     type="date"
-                    value={formData.startDate}
+                    value={"formData.startDate"}
                     onChange={(e) => setFormData(prev => ({ ...prev, startDate: e.target.value }))}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                   />
@@ -343,7 +349,7 @@ export default function EditGroupModal({ isOpen, group, classId }: EditGroupModa
                     <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500" />
                     <input
                       type="number"
-                      value={formData.numberOfSessions}
+                      value={formData.number_of_sessions}
                       onChange={(e) => setFormData(prev => ({ ...prev, numberOfSessions: parseInt(e.target.value) || 0 }))}
                       className="w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                       min="1"
@@ -357,7 +363,7 @@ export default function EditGroupModal({ isOpen, group, classId }: EditGroupModa
                   {t.description}
                 </label>
                 <textarea
-                  value={formData.groupDescription}
+                  value={"formData.groupDescription"}
                   onChange={(e) => setFormData(prev => ({ ...prev, groupDescription: e.target.value }))}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                   rows={3}
