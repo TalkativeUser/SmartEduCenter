@@ -58,24 +58,39 @@ export async function createGroup(
     throw error
   }
 }
-export async function updateGroup({ id,name,class_id,number_of_sessions, price_of_group,times,}: Group): Promise<Group> {
+
+
+export async function updateGroup({
+  id,
+  name,
+  class_id,
+  number_of_sessions,
+  price_of_group,
+  times,
+}: Group): Promise<Group> {
   
+  // 🔹 هنا بنظبط الوقت HH:mm فقط
+  const fixedTimes = times.map((t) => ({
+    ...t,
+    session_time: t.session_time.slice(0, 5), // ياخد أول 5 حروف بس -> HH:mm
+  }));
+
   const updateGroup: Group = {
     name,
     class_id,
     number_of_sessions,
     price_of_group,
-    times,
+    times: fixedTimes,
+  };
 
-  }
-
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL
-  const teacherToken = getCookie("teacherToken")
-
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+  const teacherToken = getCookie("teacherToken");
 
   try {
-
-      console.log("update group that sended to backEnd => ", JSON.stringify({...updateGroup,status:true}))
+    console.log(
+      "update group that sended to backEnd => ",
+      JSON.stringify({ ...updateGroup, status: true })
+    );
 
     const res = await fetch(`${baseUrl}/api/v1/teacher/groups/${id}`, {
       method: "PUT",
@@ -84,17 +99,43 @@ export async function updateGroup({ id,name,class_id,number_of_sessions, price_o
         "Content-Type": "application/json",
         Authorization: `Bearer ${teacherToken}`,
       },
-      body: JSON.stringify({...updateGroup,status:true}),
+      body: JSON.stringify({ ...updateGroup, status: true }),
+    });
+
+    if (!res.ok) {
+      throw new Error(`Failed to update group: ${res.status}`);
+    }
+
+    console.log("update group method res => ", res);
+    return (await res.json()) as Group;
+  } catch (error: any) {
+    console.log("Update group error => ", error);
+    throw error;
+  }
+}
+
+export async function deleteGroup(id: number) {
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL
+  const teacherToken = getCookie("teacherToken")
+
+  try {
+    const res = await fetch(`${baseUrl}/api/v1/teacher/groups/${id}`, {
+      method: "DELETE",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${teacherToken}`,
+      },
     })
 
     if (!res.ok) {
-      throw new Error(`Failed to update group: ${res.status}`)
+      throw new Error(`Failed to delete group: ${res.status}`)
     }
 
-    console.log("update group method res => ", res)
+    console.log("delete group method res => ", res)
     return (await res.json()) as Group // بيرجع الجروب اللي اتعدل
   } catch (error: any) {
-    console.log("Update group error => ", error)
+    console.log("delete group error => ", error)
     throw error
   }
 }

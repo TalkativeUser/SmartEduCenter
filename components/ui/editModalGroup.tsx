@@ -9,12 +9,14 @@ import {
   Users,
   DollarSign,
   FileText,
+  Plus,
 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/hooks/redux";
 import { toggleModal } from "@/store/slices/uiSlice";
 import { editGroupInClass } from "@/store/slices/classesSlice";
 import type { Group } from "@/types";
 import { updateGroup } from "@/lib/api/groups";
+import { getCookie } from "@/lib/cookiesMethods";
 
 interface EditGroupModalProps {
   isOpen: boolean;
@@ -62,13 +64,13 @@ const translations = {
 };
 
 const daysOfWeek = [
-  { key: "Sunday", en: "Sunday", ar: "الأحد" },
-  { key: "Monday", en: "Monday", ar: "الإثنين" },
-  { key: "Tuesday", en: "Tuesday", ar: "الثلاثاء" },
-  { key: "Wednesday", en: "Wednesday", ar: "الأربعاء" },
-  { key: "Thursday", en: "Thursday", ar: "الخميس" },
-  { key: "Friday", en: "Friday", ar: "الجمعة" },
-  { key: "Saturday", en: "Saturday", ar: "السبت" },
+  { key: "sunday", en: "sunday", ar: "الأحد" },
+  { key: "monday", en: "monday", ar: "الإثنين" },
+  { key: "tuesday", en: "tuesday", ar: "الثلاثاء" },    
+  { key: "wednesday", en: "wednesday", ar: "الأربعاء" },
+  { key: "thursday", en: "thursday", ar: "الخميس" },
+  { key: "friday", en: "friday", ar: "الجمعة" },
+  { key: "saturday", en: "saturday", ar: "السبت" }, 
 ];
 
 export default function EditGroupModal({
@@ -80,19 +82,19 @@ export default function EditGroupModal({
   const { language } = useAppSelector((state) => state.ui);
   const t = translations[language as "en" | "ar"] || translations.en;
 
-  const [formData, setFormData] = useState({
+  const groupDefaultValues = {
     name: "",
-    class_id: 0,
-    number_of_sessions: 10,
-    price_of_group: 1000,
+    class_id: classId || 0,
+    number_of_sessions: 0,
+    price_of_group: 0,
+    times: [] as { session_time: string; day_name: string }[],
     maximum_students: 0,
     payment_period: "Monthly" as "Monthly" | "Daily",
     start_date: "",
     group_description: "",
-    times: [] as { session_time: string; day_name: string }[],
-    day: [] as string[],
-    time: [""],
-  });
+  };
+
+  const [formData, setFormData] = useState<typeof groupDefaultValues>(groupDefaultValues);
 
   useEffect(() => {
     if (group) {
@@ -106,84 +108,80 @@ export default function EditGroupModal({
         start_date: group.start_date || "",
         group_description: group.group_description || "",
         times: group.times || [],
-        day: group.times?.map((item) => item.day_name) || [],
-        time: group.times?.map((item) => item.session_time) || [""],
       });
     }
   }, [group, classId]);
 
   const handleClose = () => {
     dispatch(toggleModal(null));
+    setFormData(groupDefaultValues);
   };
 
+  // ✅ Toggle day (add/remove from times)
   const handleDayToggle = (day: string) => {
+    const exists = formData.times.some((t) => t.day_name === day);
     setFormData((prev) => ({
       ...prev,
-      day: prev.day.includes(day)
-        ? prev.day.filter((d) => d !== day)
-        : [...prev.day, day],
+      times: exists
+        ? prev.times.filter((t) => t.day_name !== day)
+        : [...prev.times, { day_name: day, session_time: "" }],
     }));
   };
 
+  // ✅ Update time for specific day
   const handleTimeChange = (index: number, value: string) => {
-    const newTimes = [...formData.time];
-    newTimes[index] = value;
-    setFormData((prev) => ({ ...prev, time: newTimes }));
+    const newTimes = [...formData.times];
+    newTimes[index].session_time = value;
+    setFormData((prev) => ({ ...prev, times: newTimes }));
   };
 
-  const addTimeSlot = () => {
-    setFormData((prev) => ({ ...prev, time: [...prev.time, ""] }));
+  // ✅ Add new time slot
+  const addTimeSlot = (day: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      times: [...prev.times, { day_name: day, session_time: "" }],
+    }));
   };
 
+  // ✅ Remove time slot
   const removeTimeSlot = (index: number) => {
-    if (formData.time.length > 1) {
-      const newTimes = formData.time.filter((_, i) => i !== index);
-      setFormData((prev) => ({ ...prev, time: newTimes }));
+    const newTimes = formData.times.filter((_, i) => i !== index);
+    setFormData((prev) => ({ ...prev, times: newTimes }));
+  };
+
+  // ✅ Save Group
+  const handleSave = async () => {
+    if (!group || !classId || !formData.name.trim() || formData.times.length === 0) return;
+
+    const updatedGroup = {
+      ...group,
+      name: formData.name,
+      class_id: classId,
+      number_of_sessions: formData.number_of_sessions || 10,
+      price_of_group: formData.price_of_group || 1000,
+      times: formData.times.filter((t) => t.session_time.trim() !== ""),
+      maximum_students: formData.maximum_students || 25,
+      payment_period: formData.payment_period || "Monthly",
+      start_date: formData.start_date || "2025-09-01",
+      group_description: formData.group_description || "المجموعة الأساسية للفصل",
+    };
+
+    try {
+      const token = getCookie("teacherToken");
+      if (!token) {
+        console.error("No authentication token found");
+        return;
+      }
+
+      const result = await updateGroup(updatedGroup);
+      console.log("Updated group:", result);
+
+      dispatch(editGroupInClass({ classId, group: updatedGroup }));
+      handleClose();
+    } catch (error) {
+      console.error("Failed to update group:", error);
     }
   };
-
-  const handleSave = async () => {
-  if (!group || !classId || !formData.name.trim() || formData.day.length === 0) {
-    console.log("group or classId or name or day is empty");
-    return;
-  }
-
-  // remove empty times
-  const times = formData.day
-    .flatMap((day) =>
-      formData.time.map((time) => ({
-        day_name: day,
-        session_time: time,
-      }))
-    )
-    .filter((item) => item.session_time.trim() !== "");
-
-  // البيانات اللي هتتبعت
-  const newGroup: Group = {
-    ...group,
-    name: formData.name,
-    class_id: classId,
-    number_of_sessions: formData.number_of_sessions,
-    price_of_group: formData.price_of_group,
-    maximum_students: formData.maximum_students,
-    payment_period: formData.payment_period,
-    start_date: formData.start_date,
-    group_description: formData.group_description,
-    times,
-  };
-
-  try {
-    const updatedGroup = await updateGroup(newGroup);
-    console.log("updatedGroup from handleSave method => ",updatedGroup);
-    
-    // dispatch(editGroupInClass({ classId, group: updatedGroup }));
-
-    // handleClose();
-  } catch (error) {
-    console.error("Failed to update group:", error);
-  }
-};
-
 
   if (!group) return null;
 
@@ -203,13 +201,13 @@ export default function EditGroupModal({
           >
             {/* Header */}
             <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+              <h2 className="text-xl font-semibold flex items-center gap-2">
                 <Edit className="w-5 h-5 text-blue-600" />
                 {t.editGroup}
               </h2>
               <button
                 onClick={handleClose}
-                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors cursor-pointer"
+                className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
               >
                 <X className="w-6 h-6" />
               </button>
@@ -228,70 +226,91 @@ export default function EditGroupModal({
                   onChange={(e) =>
                     setFormData((prev) => ({ ...prev, name: e.target.value }))
                   }
-                  className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                   placeholder={t.groupName}
                 />
               </div>
 
-              {/* Days Selection */}
+              {/* Days & Times */}
               <div>
                 <label className="block text-sm font-medium mb-2">
-                  {t.days}
+                  {t.days} & {t.time}
                 </label>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                  {daysOfWeek.map((day) => (
-                    <button
-                      key={day.key}
-                      type="button"
-                      onClick={() => handleDayToggle(day.key)}
-                      className={`flex items-center justify-center px-3 py-2 rounded-md text-sm font-medium transition-colors cursor-pointer ${
-                        formData.day.includes(day.key)
-                          ? "bg-blue-600 text-white"
-                          : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200"
-                      }`}
-                    >
-                      {language === "ar" ? day.ar : day.en}
-                    </button>
-                  ))}
-                </div>
-              </div>
+                <div className="space-y-4">
+                  {daysOfWeek.map((day) => {
+                    const dayTimes = formData.times.filter(
+                      (t) => t.day_name === day.key
+                    );
+                    const isActive = dayTimes.length > 0;
 
-              {/* Time Slots */}
-              <div>
-                <label className="block text-sm font-medium mb-2">
-                  {t.time}
-                </label>
-                <div className="space-y-2">
-                  {formData.time.map((time, index) => (
-                    <div key={index} className="flex items-center gap-2">
-                      <Clock className="w-4 h-4 text-gray-500" />
-                      <input
-                        type="time"
-                        value={time}
-                        onChange={(e) =>
-                          handleTimeChange(index, e.target.value)
-                        }
-                        className="flex-1 px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                      />
-                      {formData.time.length > 1 && (
+                    return (
+                      <div key={day.key} className="border p-3 rounded-md">
                         <button
                           type="button"
-                          onClick={() => removeTimeSlot(index)}
-                          className="text-red-600 hover:text-red-800"
+                          onClick={() => handleDayToggle(day.key)}
+                          className={`px-3 py-2 rounded-md text-sm font-medium ${
+                            isActive
+                              ? "bg-blue-600 text-white"
+                              : "bg-gray-100 dark:bg-gray-700"
+                          }`}
                         >
-                          <X className="w-4 h-4" />
+                          <Calendar className="inline w-4 h-4 mr-1" />
+                          {language === "ar" ? day.ar : day.en}
                         </button>
-                      )}
-                    </div>
-                  ))}
-                  <button
-                    type="button"
-                    onClick={addTimeSlot}
-                    className="flex items-center gap-2 text-blue-600 hover:text-blue-800 text-sm"
-                  >
-                    <Calendar className="w-4 h-4" />
-                    {t.addTime}
-                  </button>
+
+                        {isActive && (
+                          <div className="mt-2 space-y-2">
+                            {dayTimes.map((time, index) => (
+                              <div
+                                key={index}
+                                className="flex items-center gap-2"
+                              >
+                                <Clock className="w-4 h-4 text-gray-500" />
+                                <input
+                                  type="time"
+                                  value={time.session_time}
+                                  onChange={(e) =>
+                                    handleTimeChange(
+                                      formData.times.findIndex(
+                                        (t) =>
+                                          t.day_name === day.key &&
+                                          t === time
+                                      ),
+                                      e.target.value
+                                    )
+                                  }
+                                  className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    removeTimeSlot(
+                                      formData.times.findIndex(
+                                        (t) =>
+                                          t.day_name === day.key &&
+                                          t === time
+                                      )
+                                    )
+                                  }
+                                  className="text-red-600 hover:text-red-800"
+                                >
+                                  <X className="w-4 h-4" />
+                                </button>
+                              </div>
+                            ))}
+                            <button
+                              type="button"
+                              onClick={() => addTimeSlot(day.key)}
+                              className="flex items-center gap-2 text-blue-600 hover:text-blue-800 text-sm"
+                            >
+                              <Plus className="w-4 h-4" />
+                              {t.addTime}
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -311,7 +330,7 @@ export default function EditGroupModal({
                         maximum_students: parseInt(e.target.value) || 0,
                       }))
                     }
-                    className="w-full pl-10 pr-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                    className="w-full pl-10 pr-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                     min="1"
                   />
                 </div>
@@ -333,7 +352,7 @@ export default function EditGroupModal({
                         price_of_group: parseInt(e.target.value) || 0,
                       }))
                     }
-                    className="w-full pl-10 pr-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                    className="w-full pl-10 pr-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                     min="0"
                   />
                 </div>
@@ -353,7 +372,7 @@ export default function EditGroupModal({
                         payment_period: e.target.value as "Daily" | "Monthly",
                       }))
                     }
-                    className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                    className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                   >
                     <option value="Monthly">{t.monthly}</option>
                     <option value="Daily">{t.daily}</option>
@@ -373,7 +392,7 @@ export default function EditGroupModal({
                         start_date: e.target.value,
                       }))
                     }
-                    className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                    className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                   />
                 </div>
               </div>
@@ -392,7 +411,7 @@ export default function EditGroupModal({
                       number_of_sessions: parseInt(e.target.value) || 0,
                     }))
                   }
-                  className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                  className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                   min="1"
                 />
               </div>
@@ -412,7 +431,7 @@ export default function EditGroupModal({
                         group_description: e.target.value,
                       }))
                     }
-                    className="w-full pl-10 pr-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
+                    className="w-full pl-10 pr-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
                     rows={3}
                     placeholder={t.description}
                   />
@@ -430,7 +449,7 @@ export default function EditGroupModal({
               </button>
               <button
                 onClick={handleSave}
-                disabled={!formData.name.trim() || formData.day.length === 0}
+                disabled={!formData.name.trim() || formData.times.length === 0}
                 className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-md disabled:cursor-not-allowed"
               >
                 {t.save}

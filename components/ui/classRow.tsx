@@ -139,8 +139,8 @@ export default function ClassRoomRow({ classItem, setClassSelected, setGroupSele
                     <thead className="bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-200">
                       <tr>
                         <th className="px-4 py-2">{t.groupName}</th>
-                        <th className="px-4 py-2">{t.days}</th>
-                        <th className="px-4 py-2">{t.time}</th>
+                        {/* <th className="px-4 py-2">{t.days}</th>
+                        <th className="px-4 py-2">{t.time}</th> */}
                         {/* <th className="px-4 py-2">{t.maxStudents}</th> */}
                         <th className="px-4 py-2">{t.price}</th>
                         {/* <th className="px-4 py-2">{t.payment}</th> */}

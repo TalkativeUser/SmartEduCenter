@@ -31,6 +31,7 @@ import { getAllClasses, deleteClass as deleteClassAPI, updateClass as updateClas
 // };
 
 // Async thunk for fetching classes
+
 export const fetchClasses = createAsyncThunk(
   'classes/fetchClasses',
   async () => {

@@ -1,11 +1,13 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Trash2, AlertTriangle } from "lucide-react";
+import { X, Trash2, AlertTriangle, Loader2 } from "lucide-react";
 import { useAppDispatch, useAppSelector } from "@/hooks/redux";
 import { toggleModal } from "../../store/slices/uiSlice";
 import { deleteGroupFromClass } from "@/store/slices/classesSlice";
 import type { Group } from "@/types";
+import { deleteGroup } from "@/lib/api/groups";
+import { getCookie } from "@/lib/cookiesMethods";
 
 interface DeleteGroupModalProps {
   isOpen: boolean;
@@ -22,6 +24,8 @@ const translations = {
     students: "Students",
     cancel: "Cancel",
     delete: "Delete Group",
+    deleting: "Deleting...",
+    errorDeleting: "Error deleting group",
   },
   ar: {
     deleteGroup: "حذف المجموعة",
@@ -31,6 +35,8 @@ const translations = {
     students: "الطلاب",
     cancel: "إلغاء",
     delete: "حذف المجموعة",
+    deleting: "جاري الحذف...",
+    errorDeleting: "خطأ في حذف المجموعة",
   },
 };
 
@@ -38,15 +44,42 @@ export default function DeleteGroupModal({ isOpen, group, classId }: DeleteGroup
   const dispatch = useAppDispatch();
   const { language } = useAppSelector((state) => state.ui);
   const t = translations[language as "en" | "ar"] || translations.en;
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleClose = () => {
     dispatch(toggleModal(null));
+    setError(null);
   };
 
-  const handleDelete = () => {
-    if (group && classId) {
+  const handleDelete = async () => {
+    if (!group || !classId) return;
+    
+    setIsDeleting(true);
+    setError(null);
+    
+    try {
+      const token = getCookie("teacherToken");
+      if (!token) {
+        setError("Authentication token not found");
+        setIsDeleting(false);
+        return;
+      }
+
+      if (!group.id) {
+        setError("Group ID not found");
+        setIsDeleting(false);
+        return;
+      }
+      
+      await deleteGroup(group.id);
       dispatch(deleteGroupFromClass({ classId, groupId: group.id }));
       handleClose();
+    } catch (error: any) {
+      console.error("Failed to delete group:", error);
+      setError(error?.message || t.errorDeleting);
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -94,6 +127,12 @@ export default function DeleteGroupModal({ isOpen, group, classId }: DeleteGroup
                 </div>
               </div>
 
+              {error && (
+                <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 p-3 rounded-md mb-4">
+                  {error}
+                </div>
+              )}
+
               <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-6">
                 <div className="space-y-2">
                   <div className="flex justify-between items-center">
@@ -109,7 +148,7 @@ export default function DeleteGroupModal({ isOpen, group, classId }: DeleteGroup
                       {t.students}:
                     </span>
                     <span className="text-sm text-gray-900 dark:text-white">
-                      {group.students.length} / {group.maximumStudents}
+                      {group.maximum_students|| 0} / {group.maximum_students || 0}
                     </span>
                   </div>
                 </div>
@@ -119,16 +158,27 @@ export default function DeleteGroupModal({ isOpen, group, classId }: DeleteGroup
             <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200 dark:border-gray-700">
               <button
                 onClick={handleClose}
-                className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-md transition-colors cursor-pointer"
+                disabled={isDeleting}
+                className="px-4 py-2 text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-md transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {t.cancel}
               </button>
               <button
                 onClick={handleDelete}
-                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md transition-colors flex items-center gap-2 cursor-pointer"
+                disabled={isDeleting}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white rounded-md transition-colors flex items-center gap-2 cursor-pointer disabled:cursor-not-allowed"
               >
-                <Trash2 className="w-4 h-4" />
-                {t.delete}
+                {isDeleting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    {t.deleting}
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-4 h-4" />
+                    {t.delete}
+                  </>
+                )}
               </button>
             </div>
           </motion.div>
