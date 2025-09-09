@@ -3,32 +3,32 @@ import { Group, ClassItem } from "../../types";
 import { getAllClasses, deleteClass as deleteClassAPI, updateClass as updateClassAPI } from "../../lib/api/classRooms";
 
 // Static group for display
-const staticGroup: Group = {
-  id: 1,
-  name: "المجموعة الأساسية",
-  class_id: 5,
-  number_of_sessions: 3,
-  price_of_group: 100,
-  times: [
-    {
-      session_time: "03:00",
-      day_name: "sunday"
-    },
-    {
-      session_time: "04:30",
-      day_name: "Thursday"
-    },
-    {
-      session_time: "06:30",
-      day_name: "Thursday"
-    }
-  ],
-  maximum_students: 25,
-  payment_period: "Monthly",
-  start_date: "2025-09-01",
-  group_description: "المجموعة الأساسية للفصل",
-  // students: [],
-};
+// const staticGroup: Group = {
+//   id: 1,
+//   name: "المجموعة الأساسية",
+//   class_id: 5,
+//   number_of_sessions: 3,
+//   price_of_group: 100,
+//   times: [
+//     {
+//       session_time: "03:00",
+//       day_name: "sunday"
+//     },
+//     {
+//       session_time: "04:30",
+//       day_name: "Thursday"
+//     },
+//     {
+//       session_time: "06:30",
+//       day_name: "Thursday"
+//     }
+//   ],
+//   maximum_students: 25,
+//   payment_period: "Monthly",
+//   start_date: "2025-09-01",
+//   group_description: "المجموعة الأساسية للفصل",
+//   // students: [],
+// };
 
 // Async thunk for fetching classes
 export const fetchClasses = createAsyncThunk(
@@ -95,13 +95,13 @@ const classesSlice = createSlice({
   initialState,
   reducers: {
     addClass: (state, action: PayloadAction<ClassItem>) => {
-      const newClass = { ...action.payload, groups: [staticGroup] };
+      const newClass = action.payload ;
       state.classes.push(newClass);
     },
     editClass: (state, action: PayloadAction<ClassItem>) => {
       const index = state.classes.findIndex((c) => c.id === action.payload.id);
       if (index !== -1) {
-        state.classes[index] = { ...action.payload, groups: [staticGroup] };
+        state.classes[index] = action.payload;
       }
     },
     deleteClass: (state, action: PayloadAction<number>) => {
@@ -147,8 +147,7 @@ const classesSlice = createSlice({
       .addCase(fetchClasses.fulfilled, (state, action) => {
         state.loading = false;
         state.classes = action.payload.map((classItem: ClassItem) => ({
-          ...classItem,
-          groups: [staticGroup]
+          ...classItem
         }));
       })
       .addCase(fetchClasses.rejected, (state, action) => {
@@ -175,7 +174,7 @@ const classesSlice = createSlice({
         state.loading = false;
         const index = state.classes.findIndex(c => c.id === action.payload.id);
         if (index !== -1) {
-          state.classes[index] = { ...action.payload, groups: [staticGroup] };
+          state.classes[index] = { ...action.payload };
         }
       })
       .addCase(updateClassThunk.rejected, (state, action) => {

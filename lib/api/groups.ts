@@ -58,3 +58,45 @@ export async function createGroup(
     throw error
   }
 }
+export async function updateGroup({ id,name,class_id,number_of_sessions, price_of_group,times,}: Group): Promise<Group> {
+  
+  const updateGroup: Group = {
+    name,
+    class_id,
+    number_of_sessions,
+    price_of_group,
+    times,
+
+  }
+
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL
+  const teacherToken = getCookie("teacherToken")
+
+
+  try {
+
+      console.log("update group that sended to backEnd => ", JSON.stringify({...updateGroup,status:true}))
+
+    const res = await fetch(`${baseUrl}/api/v1/teacher/groups/${id}`, {
+      method: "PUT",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${teacherToken}`,
+      },
+      body: JSON.stringify({...updateGroup,status:true}),
+    })
+
+    if (!res.ok) {
+      throw new Error(`Failed to update group: ${res.status}`)
+    }
+
+    console.log("update group method res => ", res)
+    return (await res.json()) as Group // بيرجع الجروب اللي اتعدل
+  } catch (error: any) {
+    console.log("Update group error => ", error)
+    throw error
+  }
+}
+
+
