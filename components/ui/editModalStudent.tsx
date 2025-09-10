@@ -26,22 +26,24 @@ interface IEditModalProps {
 export default function EditModalStudent({ studentSelected, setStudentSelected }: IEditModalProps) {
   const dispatch = useAppDispatch();
   const { language } = useAppSelector((state) => state.ui);
-  const [formData, setFormData] = useState({
-    name: "",
-    parentPhone: "",
-    groupsname: [] as string[],
-    classRoomName: "",
-    studentCode: "",
+  const [formData, setFormData] = useState<Omit<Student, 'id'>>({ 
+    name: "", 
+    geneder: "male", 
+    phone: "", 
+    group_id: 1, 
+    code: "", 
+    email: "", 
   });
 
   useEffect(() => {
     if (studentSelected) {
       setFormData({
         name: studentSelected.name,
-        parentPhone: studentSelected.parentPhone,
-        groupsname: studentSelected.groupsname,
-        classRoomName: studentSelected.classRoomName,
-        studentCode: studentSelected.studentCode,
+        geneder: studentSelected.geneder,
+        phone: studentSelected.phone,
+        group_id: studentSelected.group_id,
+        code: studentSelected.code || "",
+        email: studentSelected.email || "",
       });
     }
   }, [studentSelected]);
@@ -69,10 +71,13 @@ export default function EditModalStudent({ studentSelected, setStudentSelected }
       title: "Edit Student",
       description: "Make changes to the student information below.",
       name: "Full Name",
-      parentPhone: "Parent Phone",
-      groupsname: "Groups",
-      classRoomName: "Classroom",
-      studentCode: "Student Code",
+      phone: "Phone Number",
+      group_id: "Group ID",
+      code: "Student Code",
+      email: "Email Address",
+      gender: "Gender",
+      male: "Male",
+      female: "Female",
       save: "Save Changes",
       cancel: "Cancel",
     },
@@ -80,10 +85,13 @@ export default function EditModalStudent({ studentSelected, setStudentSelected }
       title: "تعديل الطالب",
       description: "قم بإجراء التغييرات على معلومات الطالب أدناه.",
       name: "الاسم الكامل",
-      parentPhone: "هاتف ولي الأمر",
-      groupsname: "المجموعات",
-      classRoomName: "الفصل الدراسي",
-      studentCode: "رمز الطالب",
+      phone: "رقم الهاتف",
+      group_id: "معرف المجموعة",
+      code: "رمز الطالب",
+      email: "البريد الإلكتروني",
+      gender: "الجنس",
+      male: "ذكر",
+      female: "أنثى",
       save: "حفظ التغييرات",
       cancel: "إلغاء",
     },
@@ -109,41 +117,55 @@ export default function EditModalStudent({ studentSelected, setStudentSelected }
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="parentPhone">{currentLanguage.parentPhone}</Label>
+            <Label htmlFor="gender">{currentLanguage.gender}</Label>
+            <Select 
+              value={formData.geneder} 
+              onValueChange={(value: "male" | "female") => setFormData({ ...formData, geneder: value })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder={currentLanguage.gender} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="male">{currentLanguage.male}</SelectItem>
+                <SelectItem value="female">{currentLanguage.female}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="phone">{currentLanguage.phone}</Label>
             <Input
-              id="parentPhone"
+              id="phone"
               type="tel"
-              value={formData.parentPhone}
-              onChange={(e) => setFormData({ ...formData, parentPhone: e.target.value })}
+              value={formData.phone}
+              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
               required
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="groupsname">{currentLanguage.groupsname}</Label>
+            <Label htmlFor="group_id">{currentLanguage.group_id}</Label>
             <Input
-              id="groupsname"
-              value={formData.groupsname.join(", ")}
-              onChange={(e) => setFormData({ ...formData, groupsname: e.target.value.split(", ").filter(g => g.trim() !== "") })}
-              placeholder="Enter groups separated by commas"
+              id="group_id"
+              type="number"
+              value={formData.group_id}
+              onChange={(e) => setFormData({ ...formData, group_id: parseInt(e.target.value) || 1 })}
               required
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="classRoomName">{currentLanguage.classRoomName}</Label>
+            <Label htmlFor="code">{currentLanguage.code}</Label>
             <Input
-              id="classRoomName"
-              value={formData.classRoomName}
-              onChange={(e) => setFormData({ ...formData, classRoomName: e.target.value })}
-              required
+              id="code"
+              value={formData.code}
+              onChange={(e) => setFormData({ ...formData, code: e.target.value })}
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="studentCode">{currentLanguage.studentCode}</Label>
+            <Label htmlFor="email">{currentLanguage.email}</Label>
             <Input
-              id="studentCode"
-              value={formData.studentCode}
-              onChange={(e) => setFormData({ ...formData, studentCode: e.target.value })}
-              required
+              id="email"
+              type="email"
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
             />
           </div>
           <DialogFooter>

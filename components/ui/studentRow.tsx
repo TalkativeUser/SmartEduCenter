@@ -13,21 +13,15 @@ const groupColors: Record<string, string> = {
 };
 
 import { toggleModal } from "../../store/slices/uiSlice";
-export interface Student {
-  id: number;
-  name: string;
-  parentPhone: string;
-  groupsname: string[];
-  classRoomName: string;
-  studentCode: string;
-}
+import type { Student } from "@/store/slices/studentsSlice";
 
 interface StudentRowProps {
   student: Student;
   setStudentSelected: React.Dispatch<React.SetStateAction<Student | null>>;
+  groupName?: string; // Optional prop to display group name
 }
 
-export default function StudentRow({ student, setStudentSelected }: StudentRowProps) {
+export default function StudentRow({ student, setStudentSelected, groupName }: StudentRowProps) {
   const dispatch = useAppDispatch();
 
   const handleEditStudent = (student: Student) => {
@@ -50,44 +44,23 @@ export default function StudentRow({ student, setStudentSelected }: StudentRowPr
             <div className="text-sm font-medium text-gray-900 dark:text-white">
               {student.name}
             </div>
-          
+            {student.email && (
+              <div className="text-xs text-gray-500">
+                {student.email}
+              </div>
+            )}
           </div>
         </div>
       </td>
 
-      <td className="px-6 py-4 text-start">{student.studentCode}</td>
-      <td className="px-6 py-4 text-start">{student.parentPhone}</td>
+      <td className="px-6 py-4 text-start">{student.code || "N/A"}</td>
+      <td className="px-6 py-4 text-start">{student.phone}</td>
       <td className="px-6 py-4 text-start">
-  <div className="flex gap-1 relative group">
-    {/* أول مجموعة */}
-    <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700">
-      {student.groupsname[0]}
-    </span>
-
-    {/* + باقي المجموعات مع Tooltip */}
-    {student.groupsname.length > 1 && (
-      <div className="relative">
-        <span className="text-xs text-gray-500 cursor-pointer px-2 py-1 rounded-full bg-gray-100">
-          +{student.groupsname.length - 1}
+        <span className={`px-2 py-1 rounded-full text-xs font-medium ${student.geneder === "male" ? "bg-blue-100 text-blue-700" : "bg-pink-100 text-pink-700"}`}>
+          {student.geneder === "male" ? "Male" : "Female"}
         </span>
-
-        {/* Tooltip يظهر عند Hover */}
-        <div className="absolute left-0 top-full mt-1 hidden group-hover:block z-50 w-max max-w-[200px] bg-gray-900 text-white text-xs rounded-lg p-2 shadow-lg">
-          {student.groupsname.slice(1).map((g, i) => (
-            <div key={i} className="mb-1 last:mb-0">
-              {g}
-            </div>
-          ))}
-        </div>
-      </div>
-    )}
-  </div>
-</td>
-
-
-
-
-      <td className="px-6 py-4 text-start">{student.classRoomName}</td>
+      </td>
+      <td className="px-6 py-4 text-start">{groupName || `Group ${student.group_id}`}</td>
       <td className="px-6 py-4 flex gap-3">
         <button
           onClick={() => handleEditStudent(student)}

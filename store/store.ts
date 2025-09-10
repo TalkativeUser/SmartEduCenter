@@ -4,6 +4,7 @@ import uiReducer from "./slices/uiSlice"
 import studentsReducer from "./slices/studentsSlice"
 import classesReducer from "./slices/classesSlice"
 import sessionReducer from "./slices/sessionSlice"
+import groupsReducer from "./slices/groupsSlice"
 
 export const store = configureStore({
   reducer: {
@@ -12,6 +13,7 @@ export const store = configureStore({
     students: studentsReducer,
     classes: classesReducer,
     session: sessionReducer,
+    groups: groupsReducer,
   },
 })
 

@@ -141,3 +141,28 @@ export async function deleteGroup(id: number) {
 }
 
 
+export async function getAllGroups ()  {
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL
+  const teacherToken = getCookie("teacherToken")
+
+  try {
+    const res = await fetch(`${baseUrl}/api/v1/teacher/groups`, {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${teacherToken}`,
+      },
+    })
+
+    if (!res.ok) {
+      throw new Error(`Failed to get groups: ${res.status}`)
+    }
+
+    console.log("get all groups method res => ", res)
+    return (await res.json()) as Group[] 
+  } catch (error: any) {
+    console.log("get all groups error => ", error)
+    throw error
+  }
+}

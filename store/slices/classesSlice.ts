@@ -32,7 +32,7 @@ import { getAllClasses, deleteClass as deleteClassAPI, updateClass as updateClas
 
 // Async thunk for fetching classes
 
-export const fetchClasses = createAsyncThunk(
+export const fetchClassesThunk = createAsyncThunk(
   'classes/fetchClasses',
   async () => {
     const response = await getAllClasses();
@@ -70,14 +70,14 @@ export const updateClassThunk = createAsyncThunk(
 
 interface ClassesState {
   classes: ClassItem[];
-  loading: boolean;
-  error: string | null;
+  classesLoading: boolean;
+  classesError: string | null;
 }
 
 const initialState: ClassesState = {
   classes: [],
-  loading: false,
-  error: null,
+  classesLoading: false,
+  classesError: null,
 };
 
 
@@ -141,46 +141,46 @@ const classesSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(fetchClasses.pending, (state) => {
-        state.loading = true;
-        state.error = null;
+      .addCase(fetchClassesThunk.pending, (state) => {
+        state.classesLoading = true;
+        state.classesError = null;
       })
-      .addCase(fetchClasses.fulfilled, (state, action) => {
-        state.loading = false;
+      .addCase(fetchClassesThunk.fulfilled, (state, action) => {
+        state.classesLoading = false;
         state.classes = action.payload.map((classItem: ClassItem) => ({
           ...classItem
         }));
       })
-      .addCase(fetchClasses.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.error.message || 'Failed to fetch classes';
+      .addCase(fetchClassesThunk.rejected, (state, action) => {
+        state.classesLoading = false;
+        state.classesError = action.error.message || 'Failed to fetch classes';
       })
       .addCase(deleteClassThunk.pending, (state) => {
-        state.loading = true;
-        state.error = null;
+        state.classesLoading = true;
+        state.classesError = null;
       })
       .addCase(deleteClassThunk.fulfilled, (state, action) => {
-        state.loading = false;
+        state.classesLoading = false;
         state.classes = state.classes.filter(c => c.id !== action.payload);
       })
       .addCase(deleteClassThunk.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.error.message || 'Failed to delete class';
+        state.classesLoading = false;
+        state.classesError = action.error.message || 'Failed to delete class';
       })
       .addCase(updateClassThunk.pending, (state) => {
-        state.loading = true;
-        state.error = null;
+        state.classesLoading = true;
+        state.classesError = null;
       })
       .addCase(updateClassThunk.fulfilled, (state, action) => {
-        state.loading = false;
+        state.classesLoading = false;
         const index = state.classes.findIndex(c => c.id === action.payload.id);
         if (index !== -1) {
           state.classes[index] = { ...action.payload };
         }
       })
       .addCase(updateClassThunk.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.error.message || 'Failed to update class';
+        state.classesLoading = false;
+        state.classesError = action.error.message || 'Failed to update class';
       });
   },
 });

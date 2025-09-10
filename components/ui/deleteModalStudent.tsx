@@ -25,7 +25,7 @@ export default function DeleteModalStudent({ studentSelected, setStudentSelected
   const { language } = useAppSelector((state) => state.ui);
 
   const handleDelete = () => {
-    if (studentSelected) {
+    if (studentSelected && studentSelected.id) {
       dispatch(deleteStudent(studentSelected.id));
       dispatch(toggleModal(null));
       setStudentSelected(null);
@@ -41,12 +41,18 @@ export default function DeleteModalStudent({ studentSelected, setStudentSelected
     en: {
       title: "Delete Student",
       description: "Are you sure you want to delete this student? This action cannot be undone.",
+      studentInfo: "Student Information",
+      name: "Name",
+      gender: "Gender",
       cancel: "Cancel",
       delete: "Delete",
     },
     ar: {
       title: "حذف الطالب",
       description: "هل أنت متأكد من أنك تريد حذف هذا الطالب؟ لا يمكن التراجع عن هذا الإجراء.",
+      studentInfo: "معلومات الطالب",
+      name: "الاسم",
+      gender: "الجنس",
       cancel: "إلغاء",
       delete: "حذف",
     },
@@ -61,6 +67,15 @@ export default function DeleteModalStudent({ studentSelected, setStudentSelected
           <DialogTitle>{currentLanguage.title}</DialogTitle>
           <DialogDescription>{currentLanguage.description}</DialogDescription>
         </DialogHeader>
+        
+        {studentSelected && (
+          <div className="py-4 border-t border-b">
+            <h3 className="font-medium mb-2">{currentLanguage.studentInfo}</h3>
+            <p><strong>{currentLanguage.name}:</strong> {studentSelected.name}</p>
+            <p><strong>{currentLanguage.gender}:</strong> {studentSelected.geneder === "male" ? "Male" : "Female"}</p>
+          </div>
+        )}
+        
         <DialogFooter>
           <Button variant="outline" onClick={handleCancel} className="cursor-pointer">
             {currentLanguage.cancel}

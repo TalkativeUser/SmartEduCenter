@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { useAppSelector, useAppDispatch } from "@/hooks/redux";
-import { fetchClasses } from "@/store/slices/classesSlice";
+import { fetchClassesThunk } from "@/store/slices/classesSlice";
 import ClassRoomRow from "./classRow";
 import ModalManager from "./ModalManager";
 import GroupModalsManager from "./groupModalsManager";
@@ -40,7 +40,7 @@ interface ClassRoomsTableProps {
 
 export default function ClassRoomsTable({ allSubjects, selectedSubject, setSelectedSubject }: ClassRoomsTableProps) {
   const dispatch = useAppDispatch();
-  const { classes, loading, error } = useAppSelector((state) => state.classes);
+  const { classes, classesLoading, classesError } = useAppSelector((state) => state.classes); 
   const { language } = useAppSelector((state) => state.ui);
   const [classSelected, setClassSelected] = useState<ClassItem | undefined>(undefined);
   const [groupSelected, setGroupSelected] = useState<Group | undefined>(undefined);
@@ -49,7 +49,7 @@ export default function ClassRoomsTable({ allSubjects, selectedSubject, setSelec
   const currentLanguage = translations[language as "en" | "ar"] || translations.en;
 
   useEffect(() => {
-    dispatch(fetchClasses());
+    dispatch(fetchClassesThunk());
   }, [dispatch]);
 
   return (
@@ -67,16 +67,16 @@ export default function ClassRoomsTable({ allSubjects, selectedSubject, setSelec
         </thead>
         <tbody>
         
-        {loading ? (
+        {classesLoading ? (
                 <tr>
                   <td colSpan={6} className="text-center py-6">
                     <Loading />
                   </td>
                 </tr>
-              ) : error ? (
+              ) : classesError ? (
                 <tr>
                   <td colSpan={6} className="text-center py-6 text-red-500">
-                    Error: {error}
+                    Error: {classesError}
                   </td>
                 </tr>
               ) : (
@@ -96,7 +96,7 @@ export default function ClassRoomsTable({ allSubjects, selectedSubject, setSelec
         </tbody>
       </table>
 
-      {!loading && !error && classes.length === 0 && (
+      {!classesLoading && !classesError && classes.length === 0 && (
         <div className="text-center py-6 text-gray-500 dark:text-gray-400">
           {currentLanguage.noClasses}
         </div>

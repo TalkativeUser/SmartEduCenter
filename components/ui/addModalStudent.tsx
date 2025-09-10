@@ -25,12 +25,13 @@ interface IAddModalProps {
 export default function AddModalStudent({}: IAddModalProps) {
   const dispatch = useAppDispatch();
   const { language } = useAppSelector((state) => state.ui);
-  const [formData, setFormData] = useState({
-    name: "",
-    parentPhone: "",
-    groupsname: [] as string[],
-    classRoomName: "",
-    studentCode: "",
+  const [formData, setFormData] = useState<Omit<Student, 'id'>>({ 
+    name: "", 
+    geneder: "male", 
+    phone: "", 
+    group_id: 1, 
+    code: "", 
+    email: "", 
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -41,23 +42,25 @@ export default function AddModalStudent({}: IAddModalProps) {
     };
     dispatch(addStudent(newStudent));
     dispatch(toggleModal(null));
-    setFormData({
-      name: "",
-      parentPhone: "",
-      groupsname: [],
-      classRoomName: "",
-      studentCode: "",
+    setFormData({ 
+      name: "", 
+      geneder: "male", 
+      phone: "", 
+      group_id: 1, 
+      code: "", 
+      email: "", 
     });
   };
 
   const handleCancel = () => {
     dispatch(toggleModal(null));
-    setFormData({
-      name: "",
-      parentPhone: "",
-      groupsname: [],
-      classRoomName: "",
-      studentCode: "",
+    setFormData({ 
+      name: "", 
+      geneder: "male", 
+      phone: "", 
+      group_id: 1, 
+      code: "", 
+      email: "", 
     });
   };
 
@@ -66,10 +69,13 @@ export default function AddModalStudent({}: IAddModalProps) {
       title: "Add New Student",
       description: "Fill in the information below to create a new student profile.",
       name: "Full Name",
-      parentPhone: "Parent Phone",
-      groupsname: "Groups",
-      classRoomName: "Classroom",
-      studentCode: "Student Code",
+      phone: "Phone Number",
+      group_id: "Group ID",
+      code: "Student Code",
+      email: "Email Address",
+      gender: "Gender",
+      male: "Male",
+      female: "Female",
       add: "Add Student",
       cancel: "Cancel",
     },
@@ -77,10 +83,13 @@ export default function AddModalStudent({}: IAddModalProps) {
       title: "إضافة طالب جديد",
       description: "املأ المعلومات أدناه لإنشاء ملف طالب جديد.",
       name: "الاسم الكامل",
-      parentPhone: "هاتف ولي الأمر",
-      groupsname: "المجموعات",
-      classRoomName: "الفصل الدراسي",
-      studentCode: "رمز الطالب",
+      phone: "رقم الهاتف",
+      group_id: "معرف المجموعة",
+      code: "رمز الطالب",
+      email: "البريد الإلكتروني",
+      gender: "الجنس",
+      male: "ذكر",
+      female: "أنثى",
       add: "إضافة طالب",
       cancel: "إلغاء",
     },
@@ -106,41 +115,55 @@ export default function AddModalStudent({}: IAddModalProps) {
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="parentPhone">{currentLanguage.parentPhone}</Label>
+            <Label htmlFor="gender">{currentLanguage.gender}</Label>
+            <Select 
+              value={formData.geneder} 
+              onValueChange={(value: "male" | "female") => setFormData({ ...formData, geneder: value })}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder={currentLanguage.gender} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="male">{currentLanguage.male}</SelectItem>
+                <SelectItem value="female">{currentLanguage.female}</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor="phone">{currentLanguage.phone}</Label>
             <Input
-              id="parentPhone"
+              id="phone"
               type="tel"
-              value={formData.parentPhone}
-              onChange={(e) => setFormData({ ...formData, parentPhone: e.target.value })}
+              value={formData.phone}
+              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
               required
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="groupsname">{currentLanguage.groupsname}</Label>
+            <Label htmlFor="group_id">{currentLanguage.group_id}</Label>
             <Input
-              id="groupsname"
-              value={formData.groupsname.join(", ")}
-              onChange={(e) => setFormData({ ...formData, groupsname: e.target.value.split(", ").filter(g => g.trim() !== "") })}
-              placeholder="Enter groups separated by commas"
+              id="group_id"
+              type="number"
+              value={formData.group_id}
+              onChange={(e) => setFormData({ ...formData, group_id: parseInt(e.target.value) || 1 })}
               required
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="classRoomName">{currentLanguage.classRoomName}</Label>
+            <Label htmlFor="code">{currentLanguage.code}</Label>
             <Input
-              id="classRoomName"
-              value={formData.classRoomName}
-              onChange={(e) => setFormData({ ...formData, classRoomName: e.target.value })}
-              required
+              id="code"
+              value={formData.code}
+              onChange={(e) => setFormData({ ...formData, code: e.target.value })}
             />
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="studentCode">{currentLanguage.studentCode}</Label>
+            <Label htmlFor="email">{currentLanguage.email}</Label>
             <Input
-              id="studentCode"
-              value={formData.studentCode}
-              onChange={(e) => setFormData({ ...formData, studentCode: e.target.value })}
-              required
+              id="email"
+              type="email"
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
             />
           </div>
           <DialogFooter>
