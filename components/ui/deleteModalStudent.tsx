@@ -13,7 +13,9 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useAppSelector } from "@/hooks/redux";
-import type { Student } from "@/store/slices/studentsSlice";
+import type { Student } from "@/types";
+import { deleteStudentThunk } from "@/lib/api/students";
+import { toast } from "react-hot-toast";
 
 interface IDeleteModalProps {
   studentSelected: Student | null;
@@ -26,9 +28,16 @@ export default function DeleteModalStudent({ studentSelected, setStudentSelected
 
   const handleDelete = () => {
     if (studentSelected && studentSelected.id) {
-      dispatch(deleteStudent(studentSelected.id));
-      dispatch(toggleModal(null));
-      setStudentSelected(null);
+      // Call the API to delete the student
+      try {
+              dispatch(deleteStudentThunk(studentSelected.id))
+              dispatch(deleteStudent(studentSelected.id));
+              dispatch(toggleModal(null));
+              setStudentSelected(null); 
+              toast.success("Student deleted successfully");
+    } catch (error) {
+      console.log("delete student error => ", error)
+    }
     }
   };
 

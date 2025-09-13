@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAppDispatch } from "@/hooks/redux";
 import { addStudent } from "@/store/slices/studentsSlice";
 import { toggleModal } from "@/store/slices/uiSlice";
@@ -16,40 +16,73 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAppSelector } from "@/hooks/redux";
-import type { Student } from "@/store/slices/studentsSlice";
+import type { Student } from "@/types";
+import { createStudent } from "@/lib/api/students";
 
 interface IAddModalProps {
-  // Add specific props if needed
+  allClasses?: any[];
+  allGroups?: any[];
 }
 
-export default function AddModalStudent({}: IAddModalProps) {
+export default function AddModalStudent({ allClasses = [], allGroups = [] }: IAddModalProps) {
   const dispatch = useAppDispatch();
   const { language } = useAppSelector((state) => state.ui);
   const [formData, setFormData] = useState<Omit<Student, 'id'>>({ 
     name: "", 
     geneder: "male", 
     phone: "", 
-    group_id: 1, 
+    group_id: 0, 
     code: "", 
     email: "", 
   });
+  const [selectedClassId, setSelectedClassId] = useState<string>("");
+  const [filteredGroups, setFilteredGroups] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (selectedClassId && allGroups) {
+      const filtered = allGroups.filter(group => group.class_id?.toString() === selectedClassId);
+      setFilteredGroups(filtered);
+      
+      setFormData(prev => ({
+        ...prev,
+        group_id: 0
+      }));
+    } else {
+      setFilteredGroups([]);
+    }
+  }, [selectedClassId, allGroups]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!selectedClassId) {
+      // toast.error(translations[language as 'en' | 'ar'].toastSelectClass);
+      return;
+    }
+    
+    if (!formData.group_id) {
+      // toast.error(translations[language as 'en' | 'ar'].toastSelectClassGroup);
+      return;
+    }
+
     const newStudent: Student = {
-      id: Date.now(), // Simple ID generation
+      id: Date.now(),
       ...formData,
     };
+
+    createStudent(newStudent);
     dispatch(addStudent(newStudent));
     dispatch(toggleModal(null));
+    
     setFormData({ 
       name: "", 
       geneder: "male", 
       phone: "", 
-      group_id: 1, 
+      group_id: 0, 
       code: "", 
       email: "", 
     });
+    setSelectedClassId("");
   };
 
   const handleCancel = () => {
@@ -58,10 +91,11 @@ export default function AddModalStudent({}: IAddModalProps) {
       name: "", 
       geneder: "male", 
       phone: "", 
-      group_id: 1, 
+      group_id: 0, 
       code: "", 
       email: "", 
     });
+    setSelectedClassId("");
   };
 
   const t = {
@@ -78,6 +112,11 @@ export default function AddModalStudent({}: IAddModalProps) {
       female: "Female",
       add: "Add Student",
       cancel: "Cancel",
+      class: "Class",
+      selectClass: "Select Class",
+      selectClassFirst: "Please select a class first",
+      selectGroup: "Select Group",
+      group: "Group",
     },
     ar: {
       title: "إضافة طالب جديد",
@@ -92,6 +131,11 @@ export default function AddModalStudent({}: IAddModalProps) {
       female: "أنثى",
       add: "إضافة طالب",
       cancel: "إلغاء",
+      class: "الصف",
+      selectClass: "اختر الصف",
+      selectClassFirst: "الرجاء اختيار صف أولا",
+      selectGroup: "اختر المجموعة",
+      group: "المجموعة",
     },
   };
 
@@ -139,23 +183,47 @@ export default function AddModalStudent({}: IAddModalProps) {
               required
             />
           </div>
-          <div className="grid gap-2">
-            <Label htmlFor="group_id">{currentLanguage.group_id}</Label>
-            <Input
-              id="group_id"
-              type="number"
-              value={formData.group_id}
-              onChange={(e) => setFormData({ ...formData, group_id: parseInt(e.target.value) || 1 })}
-              required
-            />
+          <div className="space-y-2">
+            <Label htmlFor="class">{currentLanguage.class}</Label>
+            <Select
+              value={selectedClassId}
+              onValueChange={(value) => setSelectedClassId(value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder={currentLanguage.selectClass} />
+              </SelectTrigger>
+              <SelectContent>
+                {allClasses?.map((classItem) => (
+                  <SelectItem key={classItem.id} value={classItem.id?.toString()}>
+                    {classItem.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-          <div className="grid gap-2">
-            <Label htmlFor="code">{currentLanguage.code}</Label>
-            <Input
-              id="code"
-              value={formData.code}
-              onChange={(e) => setFormData({ ...formData, code: e.target.value })}
-            />
+          <div className="space-y-2">
+            <Label htmlFor="group">{currentLanguage.group}</Label>
+            <Select
+              value={formData.group_id?.toString() || ""}
+              onValueChange={(value) => setFormData(prev => ({
+                ...prev,
+                group_id: parseInt(value, 10)
+              }))}
+              disabled={!selectedClassId}
+            >
+              <SelectTrigger>
+                <SelectValue 
+                  placeholder={selectedClassId ? currentLanguage.selectGroup : currentLanguage.selectClassFirst} 
+                />
+              </SelectTrigger>
+              <SelectContent>
+                {filteredGroups.map((group) => (
+                  <SelectItem key={group.id} value={group.id?.toString()}>
+                    {group.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="grid gap-2">
             <Label htmlFor="email">{currentLanguage.email}</Label>

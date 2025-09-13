@@ -5,6 +5,7 @@ import { GeistMono } from "geist/font/mono"
 import "./globals.css"
 import { ReduxProvider } from "../providers/redux-provider"
 import { ThemeProvider } from "../components/theme-provider"
+import { Toaster } from "react-hot-toast"
 
 export const metadata: Metadata = {
   title: "School Smart System",
@@ -36,6 +37,8 @@ html {
             {children}
           </ThemeProvider>
         </ReduxProvider>
+        <Toaster />
+
       </body>
     </html>
   )

@@ -233,16 +233,21 @@ const NavigationDrawer=()=>{
       name: language === "en" ? "Students" : "الطلاب",
       href: "/dashboard/students",
       icon: Users,
-      children: [
-        { name: language === "en" ? "All Students" : "جميع الطلاب", href: "/dashboard/students" },
-        { name: language === "en" ? "Add Student" : "إضافة طالب", href: "/dashboard/students/add" },
-        { name: language === "en" ? "Student Reports" : "تقارير الطلاب", href: "/dashboard/students/reports" },
-      ],
+      // children: [
+      //   { name: language === "en" ? "All Students" : "جميع الطلاب", href: "/dashboard/students" },
+      //   { name: language === "en" ? "Add Student" : "إضافة طالب", href: "/dashboard/students/add" },
+      //   { name: language === "en" ? "Student Reports" : "تقارير الطلاب", href: "/dashboard/students/reports" },
+      // ],
     },
     {
       name: language === "en" ? "ClasseRooms" : "الفصول الدراسيه",
       href: "/dashboard/classes",
       icon: BookOpen,
+    },
+    {
+      name: language === "en" ? "Attendance" : "الحضور",
+      href: "/dashboard/attendance",
+      icon: Calendar,
     },
     {
       name: language === "en" ? "Grades" : "الدرجات",
@@ -259,11 +264,12 @@ const NavigationDrawer=()=>{
         { name: language === "en" ? "Performance Analytics" : "تحليلات الأداء", href: "/dashboard/reports/performance" },
       ],
     },
-    {
-      name: language === "en" ? "Schedule" : "الجدولة",
-      href: "/dashboard/schedule",
-      icon: Calendar,
-    },
+ 
+    // {
+    //   name: language === "en" ? "Schedule" : "الجدولة",
+    //   href: "/dashboard/schedule",
+    //   icon: Calendar,
+    // },
     {
       name: language === "en" ? "Messages" : "الرسائل",
       href: "/dashboard/messages",

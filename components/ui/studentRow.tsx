@@ -13,15 +13,15 @@ const groupColors: Record<string, string> = {
 };
 
 import { toggleModal } from "../../store/slices/uiSlice";
-import type { Student } from "@/store/slices/studentsSlice";
+import type { Group, Student } from "@/types";
 
 interface StudentRowProps {
   student: Student;
   setStudentSelected: React.Dispatch<React.SetStateAction<Student | null>>;
-  groupName?: string; // Optional prop to display group name
+  groups?: Group[]; 
 }
 
-export default function StudentRow({ student, setStudentSelected, groupName }: StudentRowProps) {
+export default function StudentRow({ student, setStudentSelected, groups }: StudentRowProps) {
   const dispatch = useAppDispatch();
 
   const handleEditStudent = (student: Student) => {
@@ -32,6 +32,12 @@ export default function StudentRow({ student, setStudentSelected, groupName }: S
     dispatch(toggleModal("deleteStudent"));
     setStudentSelected(student);
   };
+
+  const groupName = groups?.find((g) => {
+  // console.log('group id => ', g.id);
+  // console.log('student group id => ', student.group_id)
+    return g.id === Number(student.group_id);
+  })?.name;
 
   return (
     <tr className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">

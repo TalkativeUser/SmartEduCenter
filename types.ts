@@ -40,8 +40,7 @@ export interface Student {
   group?: Group;             
   code?: string;
   email?: string;
-  classRoomId?: number;       
-  classRoomName?: string;     
+  group_id?: number;
 }
 
 

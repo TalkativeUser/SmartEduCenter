@@ -4,7 +4,7 @@ import { useAppSelector, useAppDispatch } from "@/hooks/redux";
 import DeleteModalStudent from "./deleteModalStudent";
 import EditModalStudent from "./editModalStudent";
 import OverlayModals from "./overlayModals";
-import { Student } from "./studentRow";
+import { Student } from "@/types";
 import AddModalStudent from "./addModalStudent";
 import DeleteModalClassRoom from "./deleteModalClass";
 import EditModalClass from "./editModalClass";
@@ -19,9 +19,21 @@ interface ModalManagerProps {
   allSubjects?: any[];
   selectedSubject?: any[];
   setSelectedSubject?: React.Dispatch<React.SetStateAction<any[]>>;
+  allClasses?: any[];
+  allGroups?: any[];
 }
 
-export default function ModalManager({ studentSelected, setStudentSelected, classSelected, setClassSelected, allSubjects, selectedSubject, setSelectedSubject }: ModalManagerProps) {
+export default function ModalManager({ 
+  studentSelected, 
+  setStudentSelected, 
+  classSelected, 
+  setClassSelected, 
+  allSubjects, 
+  selectedSubject, 
+  setSelectedSubject,
+  allClasses = [],
+  allGroups = []
+}: ModalManagerProps) {
   const { modalType } = useAppSelector((state) => state.ui);
   const dispatch = useAppDispatch();
 
@@ -47,10 +59,15 @@ export default function ModalManager({ studentSelected, setStudentSelected, clas
         <EditModalStudent
           studentSelected={safeStudentSelected}
           setStudentSelected={safeSetStudentSelected}
+          allClasses={allClasses}
+          allGroups={allGroups}
         />
       )}
       {modalType === "addStudent" && (
-        <AddModalStudent />
+        <AddModalStudent 
+          allClasses={allClasses}
+          allGroups={allGroups}
+        />
       )}
       {modalType === "deleteClass" && (
         <DeleteModalClassRoom classSelected={safeClassSelected} setClassSelected={safeSetClassSelected} />
