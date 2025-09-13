@@ -9,7 +9,7 @@ import { createAttendance, getTodayGroupsStudents, updateStudentAttendance } fro
 import React from "react";
 import toast from "react-hot-toast";
 
-export type AttendanceStatus = "present" | "absent" | "late";
+export type AttendanceStatus = "حاضر" | "غائب" | "متأخر";
 
 interface Student {
   id: number;
@@ -44,11 +44,11 @@ export default function AttendanceTable() {
   // Helper: colors & labels
   const getStatusColor = (status: AttendanceStatus) => {
     switch (status) {
-      case "present":
+      case "حاضر":
         return "bg-green-100 text-green-800";
-      case "absent":
+      case "غائب":
         return "bg-red-100 text-red-800";
-      case "late":
+      case "متأخر":
         return "bg-yellow-100 text-yellow-800";
       default:
         return "bg-gray-100 text-gray-800";
@@ -62,7 +62,7 @@ export default function AttendanceTable() {
     const fetchTodayGroupsStudents = async () => {
       try {
         const data = await getTodayGroupsStudents(); // expected: Group[]
-        // ensure each student has a status default (present)
+        // ensure each student has a status default (حاضر)
         const normalized = (data || []).map((g: any) => ({
           ...g,
           students: (g.students || []).map((s: any) => ({
@@ -275,10 +275,10 @@ const handleRegisterGroup = async (groupId: number) => {
                 <div className="flex gap-3 p-4 bg-gray-50 dark:bg-gray-700">
                   <Button
                     onClick={() =>
-                      updateAttendance(group.session_time_id,group.group_id, student.id, "present")
+                      updateAttendance(group.session_time_id,group.group_id, student.id, "حاضر")
                     }
                     size="sm"
-                    className={`flex items-center gap-2 ${student.status === "present" ? "bg-green-500 text-white border-0" : "border"}`}
+                    className={`flex items-center gap-2 ${student.status === "حاضر" ? "bg-green-500 text-white border-0" : "border"}`}
                   >
                     <Check className="h-4 w-4" />
                     حاضر
@@ -286,10 +286,10 @@ const handleRegisterGroup = async (groupId: number) => {
 
                   <Button
                     onClick={() =>
-                      updateAttendance(group.session_time_id,group.group_id, student.id, "absent")
+                      updateAttendance(group.session_time_id,group.group_id, student.id, "غائب")
                     }
                     size="sm"
-                    className={`flex items-center gap-2 ${student.status === "absent" ? "bg-red-500 text-white border-0" : "border"}`}
+                    className={`flex items-center gap-2 ${student.status === "غائب" ? "bg-red-500 text-white border-0" : "border"}`}
                   >
                     <X className="h-4 w-4" />
                     غائب
@@ -297,10 +297,10 @@ const handleRegisterGroup = async (groupId: number) => {
 
                   <Button
                     onClick={() =>
-                      updateAttendance(group.session_time_id,group.group_id, student.id, "late")
+                      updateAttendance(group.session_time_id,group.group_id, student.id, "متأخر")
                     }
                     size="sm"
-                    className={`flex items-center gap-2 ${student.status === "late" ? "bg-yellow-400 text-black border-0" : "border"}`}
+                    className={`flex items-center gap-2 ${student.status === "متأخر" ? "bg-yellow-400 text-black border-0" : "border"}`}
                   >
                     متأخر
                   </Button>
