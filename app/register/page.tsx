@@ -34,6 +34,10 @@ export default function RegisterPage() {
   const [successMessage, setSuccessMessage] = useState<string>("")
   const [loading, setLoading] = useState<boolean>(false)
   
+ if(true) {
+  router.push("/login")
+  return
+ }
 
   useEffect(() => {
     if (isAuthenticated) {

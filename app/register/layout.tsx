@@ -9,5 +9,5 @@ export default function RegisterLayout({
 }: {
   children: React.ReactNode
 }) {
-  return <AuthGuard requireAuth={false}>{children}</AuthGuard>
+  return <AuthGuard requireAuth={false} >{children}</AuthGuard>
 }

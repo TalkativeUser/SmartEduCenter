@@ -32,9 +32,7 @@ export const getTodayGroupsStudents = async () => {
 
 export async function createAttendance(
     session_time_id: number,
-    student_ids: string, // comma separated string
-    statuses: string     // comma separated string
-    
+    attendance: { student_id: number; status: AttendanceStatus }[]
   ) {
     const teacherToken = getCookie("teacherToken");
     
@@ -48,8 +46,7 @@ export async function createAttendance(
         },
         body: JSON.stringify({
           session_time_id,
-          student_id: student_ids, 
-          status: statuses,        
+          attendance,        
         }),
       });
 
@@ -57,18 +54,12 @@ export async function createAttendance(
         throw new Error(`Failed to create attendance`);
       }
 
-      toast.success("✅ تم تسجيل الحضور بنجاح!", {
-        duration: 3000,
-        position: "top-center",
-      });
+     
   
       return await res.json();
     } catch (error) {
       console.error("Error creating attendance:", error);
-      toast.error("❌ فشل تسجيل الحضور!", {
-        duration: 3000,
-        position: "top-center",
-      });
+     
       throw error;
     }
   }

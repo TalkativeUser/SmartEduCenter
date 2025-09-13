@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { DashboardLayout } from "@/components/dashboard-layout";
 import { createAttendance, getTodayGroupsStudents, updateStudentAttendance } from "@/lib/api/attendance";
 import React from "react";
+import toast from "react-hot-toast";
 
 export type AttendanceStatus = "present" | "absent" | "late";
 
@@ -39,6 +40,7 @@ export default function AttendanceTable() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [studentToUpdate,setStudentToUpdate] = useState<StudentToUpdate | null>(null);
+  const notAttendance = "لم يتم تسجيله";
   // Helper: colors & labels
   const getStatusColor = (status: AttendanceStatus) => {
     switch (status) {
@@ -53,18 +55,7 @@ export default function AttendanceTable() {
     }
   };
 
-  const getStatusText = (status: AttendanceStatus) => {
-    switch (status) {
-      case "present":
-        return "حاضر";
-      case "absent":
-        return "غائب";
-      case "late":
-        return "متأخر";
-      default:
-        return "";
-    }
-  };
+
 
   // Fetch groups+students for today and normalize default status
   useEffect(() => {
@@ -76,8 +67,8 @@ export default function AttendanceTable() {
           ...g,
           students: (g.students || []).map((s: any) => ({
             ...s,
-            status: (s.status as AttendanceStatus) || (s.attendanceStatus as AttendanceStatus) || "present",
-            // map API's student fields to our Student interface keys if needed
+              status: s.attendance_today? s.attendance_today.status: notAttendance ,
+              // map API's student fields to our Student interface keys if needed
             id: Number(s.id),
             code: s.code || s.student_code || "",
             name: s.name || s.full_name || "",
@@ -121,25 +112,40 @@ export default function AttendanceTable() {
 
 // registerAttendance per group
 const handleRegisterGroup = async (groupId: number) => {
-    const group = allTodayGroups.find((g) => g.group_id === groupId);
-    if (!group) return;
-  
-    const session_time_id = group.session_time_id;
-  
-    // نجهز ال IDs كـ string مفصول بفواصل
-    const idsString = group.students.map((s) => s.id).join(",");
-  
-    // نجهز ال statuses كـ string مفصول بفواصل
-    const statusesString = group.students.map((s) => s.status || "present").join(",");
-  
-    try {
-      const response = await createAttendance(session_time_id, idsString, statusesString);
-  
-    } catch (error) {
-      console.error(`Failed to register attendance for group ${group.group_name}:`, error);
-     
-    }
-  };
+  const group = allTodayGroups.find((g) => g.group_id === groupId);
+  if (!group) return;
+
+  const session_time_id = group.session_time_id;
+
+  // تحقق إن كل الطلاب عندهم حالة مش "لم يتم تسجيله"
+  const hasUnregisteredStudents = group.students.some(
+    (s) => (s.status as string) === notAttendance || !s.status
+  );
+  if (hasUnregisteredStudents) {
+    toast.error("يجب اختيار حالة لكل طالب قبل تسجيل حضور المجموعة");
+    return;
+  }
+
+  // جهز البيانات بعد ما كل الحالات موجودة
+  const attendance = group.students.map((s) => ({
+    student_id: s.id,
+    status: s.status as AttendanceStatus,
+  }));
+
+  try {
+    console.log("Attendance to save:", session_time_id, attendance);
+    const response = await createAttendance(session_time_id, attendance);
+    toast.success("تم تسجيل الحضور بنجاح ✅");
+    console.log("Attendance saved:", response);
+  } catch (error) {
+    toast.error("فشل تسجيل الحضور ❌");
+    console.error(
+      `Failed to register attendance for group ${group.group_name}:`,
+      error
+    );
+  }
+};
+
 
   const handleUpdateStudentAttendance = async () => {
     if (!studentToUpdate) return;
@@ -217,7 +223,7 @@ const handleRegisterGroup = async (groupId: number) => {
                       <tbody>
   {group.students.map((student:Student) => {
     const expandedStudent = expandedStudentId === student.id;
-    const status: AttendanceStatus = (student.status as AttendanceStatus) || "present";
+   
 
     return (
       <React.Fragment key={student.id}>
@@ -248,9 +254,9 @@ const handleRegisterGroup = async (groupId: number) => {
 
           <td className="px-4 py-3 text-start">
             <span
-              className={`text-sm px-3 py-1 rounded-full ${getStatusColor(status)}`}
+              className={`text-sm px-3 py-1 rounded-full ${getStatusColor(student.status as AttendanceStatus)}`}
             >
-              {getStatusText(status)}
+              {student.status}
             </span>
           </td>
         </tr>
